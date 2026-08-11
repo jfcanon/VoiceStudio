@@ -11,27 +11,24 @@
  * items stay neutral, so the chrome never turns into a colour chart.
  */
 import {
-  Globe,
   Fingerprint,
-  Film,
-  FolderOpen,
   Settings2,
   Library,
   FileText,
-  BookOpen,
-  BookMarked,
+  Globe,
 } from 'lucide-react';
 
-/** The workspaces, in navigation order. `tKey` resolves as `nav.<tKey>`. */
+/** The workspaces, in navigation order. `tKey` resolves as `nav.<tKey>`.
+ *
+ * Local MVP fork: the workspace set is trimmed to the core studio —
+ * Voice (clone/design), Gallery, and Transcriptions. Dubbing, Stories,
+ * Audiobook, and the OmniDrive project browser are out of MVP scope.
+ */
 export const NAV_ITEMS = [
   { id: 'launchpad', Icon: Globe, tKey: 'launchpad', accent: '#f3a5b6' },
   { id: 'studio', Icon: Fingerprint, tKey: 'voice', accent: '#d3869b' },
-  { id: 'dub', Icon: Film, tKey: 'dub', accent: '#fe8019' },
-  { id: 'stories', Icon: BookOpen, tKey: 'stories', accent: '#fabd2f' },
-  { id: 'audiobook', Icon: BookMarked, tKey: 'audiobook', accent: '#8ec07c' },
   { id: 'gallery', Icon: Library, tKey: 'gallery', accent: '#b8bb26' },
   { id: 'transcriptions', Icon: FileText, tKey: 'transcripts', accent: '#d3869b' },
-  { id: 'projects', Icon: FolderOpen, tKey: 'omnidrive', accent: '#83a598' },
 ];
 
 /** Pinned to the end of the nav (rail footer / tab-strip tail). */

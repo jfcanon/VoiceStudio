@@ -31,7 +31,7 @@ function renderHeader(props) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
-      <Header mode="dub" setMode={() => {}} modelStatus="idle" {...props} />
+      <Header mode="gallery" setMode={() => {}} modelStatus="idle" {...props} />
     </QueryClientProvider>,
   );
 }
@@ -41,11 +41,11 @@ describe('Header — rail mode (default)', () => {
     const { container } = renderHeader({});
     expect(container.querySelector('.tabstrip')).toBeNull();
     expect(container.querySelector('.header-area--tabs')).toBeNull();
-    expect(screen.queryByTestId('titletab-dub')).toBeNull();
+    expect(screen.queryByTestId('titletab-gallery')).toBeNull();
     // Breadcrumb (current view) + centred wordmark both stay.
     expect(container.textContent).toMatch(/VoiceStudio/);
     expect(screen.getByTestId('voice-studio-logo')).toBeInTheDocument();
-    expect(container.textContent).toMatch(/Dub/);
+    expect(container.textContent).toMatch(/Gallery/);
   });
 
   it('uses the app header for native window controls', async () => {
@@ -66,7 +66,7 @@ describe('Header — titlebar tabs mode', () => {
     const { container } = renderHeader({ navStyle: 'tabs' });
     expect(container.querySelector('.header-area--tabs')).not.toBeNull();
     expect(container.querySelector('.tabstrip')).not.toBeNull();
-    expect(screen.getByTestId('titletab-dub')).toHaveClass('is-active');
+    expect(screen.getByTestId('titletab-gallery')).toHaveClass('is-active');
   });
 
   it('drops the centred wordmark — the tabs need that room', () => {

@@ -38,19 +38,19 @@ describe('TitleTabs — the titlebar tab strip', () => {
   });
 
   it('marks exactly the current workspace as active and current', () => {
-    render(<TitleTabs mode="dub" setMode={() => {}} />);
+    render(<TitleTabs mode="gallery" setMode={() => {}} />);
     const active = ALL.filter((i) =>
       screen.getByTestId(`titletab-${i.id}`).classList.contains('is-active'),
     );
-    expect(active.map((i) => i.id)).toEqual(['dub']);
-    expect(screen.getByTestId('titletab-dub')).toHaveAttribute('aria-current', 'page');
+    expect(active.map((i) => i.id)).toEqual(['gallery']);
+    expect(screen.getByTestId('titletab-gallery')).toHaveAttribute('aria-current', 'page');
     expect(screen.getByTestId('titletab-studio')).not.toHaveAttribute('aria-current');
   });
 
   it('carries the workspace accent so the active tab can wear it', () => {
-    render(<TitleTabs mode="dub" setMode={() => {}} />);
-    expect(screen.getByTestId('titletab-dub').style.getPropertyValue('--tab-accent')).toBe(
-      '#fe8019',
+    render(<TitleTabs mode="gallery" setMode={() => {}} />);
+    expect(screen.getByTestId('titletab-gallery').style.getPropertyValue('--tab-accent')).toBe(
+      '#b8bb26',
     );
   });
 
@@ -64,11 +64,11 @@ describe('TitleTabs — the titlebar tab strip', () => {
   it('never draws a separator against the raised (active) tab', () => {
     // Chrome's hairlines exist to divide RESTING tabs; one touching the active
     // tab cuts across the curl that connects it to the page below.
-    render(<TitleTabs mode="dub" setMode={() => {}} />);
-    const dubIndex = NAV_ITEMS.findIndex((i) => i.id === 'dub');
-    const before = NAV_ITEMS[dubIndex - 1];
+    render(<TitleTabs mode="gallery" setMode={() => {}} />);
+    const galleryIndex = NAV_ITEMS.findIndex((i) => i.id === 'gallery');
+    const before = NAV_ITEMS[galleryIndex - 1];
     expect(screen.getByTestId(`titletab-${before.id}`).className).not.toMatch(/has-separator/);
-    expect(screen.getByTestId('titletab-dub').className).not.toMatch(/has-separator/);
+    expect(screen.getByTestId('titletab-gallery').className).not.toMatch(/has-separator/);
     // …but resting neighbours still get one.
     expect(screen.getByTestId(`titletab-${NAV_ITEMS[0].id}`).className).toMatch(/has-separator/);
   });
@@ -162,19 +162,19 @@ describe('TitleTabs — label policy (all-or-nothing, measured)', () => {
 
   it('keeps every label when the full set fits', () => {
     stubStripWidths({ needed: 800, available: 1000 });
-    const { container } = render(<TitleTabs mode="dub" setMode={() => {}} />);
+    const { container } = render(<TitleTabs mode="gallery" setMode={() => {}} />);
     expect(container.querySelector('.tabstrip').className).not.toMatch(/is-compact/);
   });
 
   it('drops resting labels when it does not', () => {
     stubStripWidths({ needed: 1200, available: 1000 });
-    const { container } = render(<TitleTabs mode="dub" setMode={() => {}} />);
+    const { container } = render(<TitleTabs mode="gallery" setMode={() => {}} />);
     expect(container.querySelector('.tabstrip').className).toMatch(/is-compact/);
   });
 
   it('ignores a sub-pixel overflow rather than stripping the whole row', () => {
     stubStripWidths({ needed: 1001, available: 1000 });
-    const { container } = render(<TitleTabs mode="dub" setMode={() => {}} />);
+    const { container } = render(<TitleTabs mode="gallery" setMode={() => {}} />);
     expect(container.querySelector('.tabstrip').className).not.toMatch(/is-compact/);
   });
 
@@ -183,11 +183,11 @@ describe('TitleTabs — label policy (all-or-nothing, measured)', () => {
     // strip measure its own compact width, agree with itself, and never
     // recover — turning the metrics cluster off would leave icons forever.
     stubStripWidths({ needed: 1200, available: 1000 });
-    const { container, rerender } = render(<TitleTabs mode="dub" setMode={() => {}} />);
+    const { container, rerender } = render(<TitleTabs mode="gallery" setMode={() => {}} />);
     expect(container.querySelector('.tabstrip').className).toMatch(/is-compact/);
 
     stubStripWidths({ needed: 1200, available: 1400 });
-    rerender(<TitleTabs mode="stories" setMode={() => {}} />);
+    rerender(<TitleTabs mode="transcriptions" setMode={() => {}} />);
     expect(container.querySelector('.tabstrip').className).not.toMatch(/is-compact/);
   });
 

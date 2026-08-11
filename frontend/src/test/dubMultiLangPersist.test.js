@@ -97,21 +97,10 @@ describe('project payload — save/load round-trip (restoreProjectExtras)', () =
 });
 
 describe('App.jsx wiring guard (raw source — keeps the util honest)', () => {
-  it('saveProject persists the three fields in statePayload.state', () => {
-    const start = appSrc.indexOf('const statePayload');
-    expect(start).toBeGreaterThan(-1);
-    const block = appSrc.slice(start, appSrc.indexOf('apiSaveProject', start));
-    for (const key of ['multiLangMode', 'multiLangs', 'exportTracks']) {
-      expect(block, `statePayload.state must include ${key}`).toContain(key);
-    }
-  });
-
-  it('loadProject restores through restoreProjectExtras', () => {
-    const start = appSrc.indexOf('const loadProject');
-    expect(start).toBeGreaterThan(-1);
-    const block = appSrc.slice(start, start + 3000);
-    expect(block).toContain('restoreProjectExtras');
-    expect(block).toContain('setMultiLangMode');
-    expect(block).toContain('setMultiLangs');
+  it('dub project loading was removed in the MVP fork', () => {
+    // The Local MVP removed the dub pipeline (and its project load path), so
+    // App.jsx must not resurrect the dub-project loader.
+    expect(appSrc.indexOf('const loadProject')).toBe(-1);
+    expect(appSrc.indexOf('restoreProjectExtras')).toBe(-1);
   });
 });

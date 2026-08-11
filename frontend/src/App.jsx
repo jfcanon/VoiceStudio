@@ -10,30 +10,21 @@ import React, {
 import './index.css';
 import { useAppStore, FONT_STACKS } from './store';
 import SearchableSelect from './components/SearchableSelect';
-import DirectionDialog from './components/DirectionDialog';
 
 // Lazy-load heavy/conditional components so they don't bloat the initial bundle.
 const AudioTrimmer = lazy(() => import('./components/AudioTrimmer'));
 const Launchpad = lazy(() => import('./pages/Launchpad'));
 const CloneDesignTab = lazy(() => import('./pages/CloneDesignTab'));
-const DubTab = lazy(() => import('./pages/DubTab'));
 const Sidebar = lazy(() => import('./components/Sidebar'));
 const CompareModal = lazy(() => import('./components/CompareModal'));
 const Settings = lazy(() => import('./pages/Settings'));
 const VoiceProfile = lazy(() => import('./pages/VoiceProfile'));
-const BatchQueue = lazy(() => import('./pages/BatchQueue'));
-const ToolsPage = lazy(() => import('./pages/ToolsPage'));
 const SetupWizard = lazy(() => import('./pages/SetupWizard'));
 const KeyboardCheatsheet = lazy(() => import('./components/KeyboardCheatsheet'));
 const VoicePreview = lazy(() => import('./components/VoicePreview'));
 const LogsFooter = lazy(() => import('./components/LogsFooter'));
-const ProjectsPage = lazy(() => import('./pages/Projects'));
 const VoiceGallery = lazy(() => import('./pages/VoiceGallery'));
-const SupportPage = lazy(() => import('./pages/SupportPage'));
-const ContactPage = lazy(() => import('./pages/ContactPage'));
 const TranscriptionsPage = lazy(() => import('./pages/Transcriptions'));
-const StoriesEditor = lazy(() => import('./components/StoriesEditor'));
-const AudiobookTab = lazy(() => import('./pages/AudiobookTab'));
 
 import Header from './components/Header';
 import NavRail from './components/NavRail';
@@ -46,9 +37,7 @@ import FloatingPill from './components/FloatingPill';
 import GlobalAudioPlayer from './components/GlobalAudioPlayer';
 import BackendCrashNotice from './components/BackendCrashNotice';
 import BackendStartFailureNotice from './components/BackendStartFailureNotice';
-import AnalyticsConsentBanner from './components/AnalyticsConsentBanner';
 import LanguageSwitchPrompt from './components/LanguageSwitchPrompt';
-import { initAnalyticsFromConsent } from './utils/analytics';
 import BackendRestartBanner from './components/BackendRestartBanner';
 // RemoteAuthGate is mounted at the true outermost provider in main-app.jsx so
 // it covers all app states (setup check / wizard / bootstrap), not just the
@@ -63,7 +52,6 @@ import useSegmentEditing from './hooks/useSegmentEditing';
 import useAppData from './hooks/useAppData';
 import useProfiles from './hooks/useProfiles';
 import useTTS from './hooks/useTTS';
-import useDubWorkflow from './hooks/useDubWorkflow';
 
 const LazyFallback = () => <div className="app-lazy-fallback">{i18n.t('app.loading')}</div>;
 
@@ -83,16 +71,8 @@ import {
   CLONE_MAX_SECONDS,
 } from './utils/constants';
 import { LANG_CODES } from './utils/languages';
-import { restoreProjectExtras } from './utils/projectState';
-import { castSourcesFromJob } from './utils/segments';
-import { API, apiFetch, apiJson } from './api/client';
+import { API, apiFetch } from './api/client';
 import { flushMemory as apiFlushMemory } from './api/system';
-import {
-  saveProject as apiSaveProject,
-  loadProject as apiLoadProject,
-  deleteProject as apiDeleteProject,
-  renameProject as apiRenameProject,
-} from './api/projects';
 import { exportAction, exportReveal, exportRecord } from './api/exports';
 import {
   clearHistory as apiClearHistory,
@@ -103,7 +83,6 @@ import { clearDubHistory as apiClearDubHistory } from './api/dub';
 
 import { isTauri, doubleClickMaximize, fileToMediaUrl, playBlobAudio } from './utils/media';
 import { browserDownload } from './utils/download';
-import { downloadMedia } from './utils/mediaDownload';
 import { checkForUpdate, fetchAppVersion } from './utils/updater';
 import { syncChannel } from './utils/channelControl';
 import i18n from './i18n';
@@ -115,13 +94,7 @@ function App() {
   // normal app shell, so the user sees real progress instead of a hung UI.
   const { stage: bootstrapStage, message: bootstrapMessage } = useBootstrapStage();
 
-  // Analytics is OFF until the user opts in (Settings → Privacy). We never call
-  // posthog.init() at load — that would track people before they consented, and
-  // would make the app's own "sends nothing out of the box" promise false. Ask
-  // the backend for the stored consent, and only then start it.
-  useEffect(() => {
-    initAnalyticsFromConsent(() => apiJson('/api/settings/analytics'));
-  }, []);
+  // Local MVP fork: telemetry was removed — there is no analytics to init.
 
   // UI navigation state now lives in the Zustand `uiSlice` (Phase 2.2).
   // Mode + uiScale + sidebar-collapsed persist across reloads automatically
@@ -272,20 +245,11 @@ function App() {
     mode === 'launchpad' ||
     mode === 'settings' ||
     mode === 'voice' ||
-    mode === 'donate' ||
-    mode === 'queue' ||
-    mode === 'tools' ||
-    mode === 'projects' ||
     mode === 'gallery' ||
-    mode === 'enterprise' ||
-    mode === 'contact' ||
     mode === 'transcriptions' ||
-    mode === 'stories' ||
-    mode === 'audiobook' ||
-    // Voice (studio) and Dub workspaces moved their saved voices /
-    // projects + history into right-side panels; left sidebar dissolved.
-    mode === 'studio' ||
-    mode === 'dub';
+    // Voice (studio) moved its saved voices / projects + history into
+    // right-side panels; left sidebar dissolved.
+    mode === 'studio';
   const availableSidebarTabs = [];
   // Generate-tab prefs now live in `generateSlice` (Phase 2.2). Persisted
   // knobs survive reloads via the store's `partialize`.
@@ -334,7 +298,6 @@ function App() {
     loadProfiles,
     loadHistory,
     loadDubHistory,
-    loadProjects,
     loadExportHistory,
   } = useAppData();
 
@@ -346,7 +309,6 @@ function App() {
     profileName,
     setProfileName,
     previewLoading,
-    segmentPreviewLoading,
     isVoicePreviewOpen,
     setIsVoicePreviewOpen,
     voicePreviewProfileId,
@@ -356,7 +318,6 @@ function App() {
     handleDeleteProfile,
     handleSelectProfile,
     handlePreviewVoice,
-    handleSegmentPreview,
     handleSaveHistoryAsProfile,
     handleLockProfile,
     handleUnlockProfile,
@@ -385,10 +346,6 @@ function App() {
   // so we wait for it to appear, select it, then clear the hand-off.
   const pendingProfileId = useAppStore((s) => s.pendingProfileId);
   const setPendingProfileId = useAppStore((s) => s.setPendingProfileId);
-  // Stories projects (storiesSlice) — surfaced in the global Projects view so a
-  // saved story is openable from OmniDrive, like dub projects.
-  const storyProjects = useAppStore((s) => s.storyProjects);
-  const loadStoryProject = useAppStore((s) => s.loadProject);
   const pendingRefreshRef = useRef(null);
   useEffect(() => {
     if (!pendingProfileId) {
@@ -436,80 +393,13 @@ function App() {
     stopRecording,
   } = useRecording(ingestRefAudio);
 
-  // ═══ DUB STATE ═══
-  const dubJobId = useAppStore((s) => s.dubJobId);
-  const setDubJobId = useAppStore((s) => s.setDubJobId);
-  const dubStep = useAppStore((s) => s.dubStep);
-  const setDubStep = useAppStore((s) => s.setDubStep);
-  const dubSegments = useAppStore((s) => s.dubSegments);
-  const setDubSegments = useAppStore((s) => s.setDubSegments);
-  const dubLang = useAppStore((s) => s.dubLang);
-  const setDubLang = useAppStore((s) => s.setDubLang);
-  const dubLangCode = useAppStore((s) => s.dubLangCode);
-  const setDubLangCode = useAppStore((s) => s.setDubLangCode);
-  const dubDialect = useAppStore((s) => s.dubDialect);
-  const setDubDialect = useAppStore((s) => s.setDubDialect);
-  const dubInstruct = useAppStore((s) => s.dubInstruct);
-  const setDubInstruct = useAppStore((s) => s.setDubInstruct);
-  const setDubProgress = useAppStore((s) => s.setDubProgress);
-  const dubFilename = useAppStore((s) => s.dubFilename);
-  const setDubFilename = useAppStore((s) => s.setDubFilename);
-  const dubDuration = useAppStore((s) => s.dubDuration);
-  const setDubDuration = useAppStore((s) => s.setDubDuration);
-  const setDubError = useAppStore((s) => s.setDubError);
-  const dubTracks = useAppStore((s) => s.dubTracks);
-  const setDubTracks = useAppStore((s) => s.setDubTracks);
-  const dubTranscript = useAppStore((s) => s.dubTranscript);
-  const setDubTranscript = useAppStore((s) => s.setDubTranscript);
-  const preserveBg = useAppStore((s) => s.preserveBg);
-  const setPreserveBg = useAppStore((s) => s.setPreserveBg);
-  const defaultTrack = useAppStore((s) => s.defaultTrack);
-  const setDefaultTrack = useAppStore((s) => s.setDefaultTrack);
-  const exportTracks = useAppStore((s) => s.exportTracks);
-  const setExportTracks = useAppStore((s) => s.setExportTracks);
-  const previewSegIds = useAppStore((s) => s.previewSegIds);
-  const speakerClones = useAppStore((s) => s.speakerClones);
-  const setSpeakerClones = useAppStore((s) => s.setSpeakerClones);
-  // Multi-language batch picks (P1.4) — saved with the project payload.
-  const multiLangMode = useAppStore((s) => s.multiLangMode);
-  const setMultiLangMode = useAppStore((s) => s.setMultiLangMode);
-  const multiLangs = useAppStore((s) => s.multiLangs);
-  const setMultiLangs = useAppStore((s) => s.setMultiLangs);
-
-  const setGlossaryTerms = useAppStore((s) => s.setGlossaryTerms);
-  const dualSubs = useAppStore((s) => s.dualSubs);
-  const burnSubs = useAppStore((s) => s.burnSubs);
-
-  // ── UNDO / REDO + SEGMENT EDITING ──
-  // Must come before useDubWorkflow because the dub generate handler needs
-  // setLastGenFingerprints to keep the incremental-regen plan in sync.
+  // ── UNDO / REDO ──
+  // Local MVP fork: dubbing, stories, and audiobook state were removed, so the
+  // undo/redo (studio generate history) is the only thing left from the old
+  // segment-editing hook family.
   const {
     undo,
     redo,
-    editSegments,
-    segmentEditField,
-    segmentDelete,
-    segmentRestoreOriginal,
-    pasteTranslations,
-    segmentSplit,
-    segmentMerge,
-    segmentMoveResize,
-    timelineSelSegId,
-    setTimelineSelSegId,
-    selectedSegIds,
-    toggleSegSelect,
-    selectAllSegs,
-    clearSegSelection,
-    bulkApplyToSelected,
-    bulkDeleteSelected,
-    directionSegId,
-    openDirection,
-    closeDirection,
-    saveDirection,
-    setLastGenFingerprints,
-    fingerprintsByLang,
-    setFingerprintsByLang,
-    incrementalPlan,
     recomputeIncremental,
   } = useSegmentEditing();
 
@@ -517,54 +407,8 @@ function App() {
     recomputeIncremental();
   }, [recomputeIncremental]);
 
-  const {
-    translateProvider,
-    setTranslateProvider,
-    showTranscript,
-    setShowTranscript,
-    setPreviewAudios,
-    transcribeElapsed,
-    transcribeProgress,
-    asrInstall,
-    handleDubUpload: _handleDubUpload,
-    handleDubIngestUrl,
-    handleDubAbort,
-    handleDubRetryTranscribe,
-    handleInstallMissingAsr,
-    handleDubStop,
-    handleDubGenerate,
-    handleCleanupSegments,
-    handleTranslateAll,
-    handleDubImportSrt,
-  } = useDubWorkflow({
-    loadProjects,
-    loadProfiles,
-    loadDubHistory,
-    setLastGenFingerprints,
-  });
-
-  const [dubVideoFile, setDubVideoFile] = useState(null);
-  const [dubLocalBlobUrl, setDubLocalBlobUrl] = useState(null);
-  const dubBlobUrlRef = useRef(null);
-  useEffect(() => {
-    dubBlobUrlRef.current = dubLocalBlobUrl;
-  }, [dubLocalBlobUrl]);
-  useEffect(
-    () => () => {
-      const urls = dubBlobUrlRef.current;
-      if (urls?.videoUrl?.startsWith('blob:')) URL.revokeObjectURL(urls.videoUrl);
-      if (urls?.audioUrl?.startsWith('blob:') && urls.audioUrl !== urls.videoUrl)
-        URL.revokeObjectURL(urls.audioUrl);
-    },
-    [],
-  );
-
-  const handleDubUpload = () => _handleDubUpload(dubVideoFile);
-
   // ═══ STUDIO PROJECTS ═══
-  const activeProjectId = useAppStore((s) => s.activeProjectId);
   const activeProjectName = useAppStore((s) => s.activeProjectName);
-  const setActiveProject = useAppStore((s) => s.setActiveProject);
   const sidebarTab = useAppStore((s) => s.sidebarTab);
   const setSidebarTab = useAppStore((s) => s.setSidebarTab);
 
@@ -705,21 +549,11 @@ function App() {
       if (e.ctrlKey) e.preventDefault();
     };
 
-    // 4. Global Drag and drop for seamless native feeling
+    // 4. Global Drag and drop for seamless native feeling.
+    // Local MVP fork: dubbing is out of scope, so a dropped media file can no
+    // longer route into the dub editor — the drop is ignored.
     const handleDrop = (e) => {
       e.preventDefault();
-      const file = e.dataTransfer?.files[0];
-      if (!file) return;
-
-      const isVideo = file.name.match(/\.(mp4|mov|mkv|webm|avi)$/i);
-      const isAudio = file.name.match(/\.(mp3|wav|flac|m4a|ogg)$/i);
-      if (isVideo || isAudio) {
-        setMode('dub');
-        setDubVideoFile(file);
-        fileToMediaUrl(file, null).then((urls) => setDubLocalBlobUrl(urls));
-        setDubFilename(file.name);
-        setDubStep('idle');
-      }
     };
     const handleDragOver = (e) => e.preventDefault();
 
@@ -744,17 +578,12 @@ function App() {
       // ⌘+Enter or Ctrl+Enter → Generate
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault();
-        if (mode === 'dub') {
-          if (dubStep === 'editing' && dubSegments.length > 0) handleDubGenerate();
-        } else {
-          if (!isGenerating) handleGenerate();
-        }
+        if (!isGenerating) handleGenerate();
         return;
       }
       // ⌘+S or Ctrl+S → Save project
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
-        if (mode === 'dub') saveProject();
         return;
       }
       // ⌘+Z → Undo
@@ -840,252 +669,6 @@ function App() {
       toast.error(i18n.t('app.toast_open_folder_failed', { message: err.message }));
     }
   };
-  // Save a dynamic export — dub video/audio/subtitles — to
-  // disk. The parity-safe dialog + server-side copy vs browser-blob branch now
-  // lives in the shared `downloadMedia` util (#1218) so audiobook/story exports
-  // reuse the exact same path and never fall back to a webview-hijacking
-  // `<a href download>`. App-specific niceties are passed as callbacks.
-  const triggerDownload = (url, fallbackName) =>
-    downloadMedia(url, fallbackName, {
-      onValueMoment: () => recordValueMoment('export'), // success-only donation
-      onHistoryChanged: loadExportHistory,
-    });
-  // Pre-flight for audio/video exports. If any segments are at preview
-  // quality (num_step=8, from a "Regen changed" click), re-render those at
-  // full quality first so the user's exported file isn't carrying preview
-  // artifacts. No-op when previewSegIds is empty.
-  const finalizeTtsBeforeExport = async () => {
-    if (!previewSegIds || previewSegIds.length === 0) return;
-    toast(i18n.t('dub.upgrading_preview', { count: previewSegIds.length }));
-    await handleDubGenerate({ regenOnly: previewSegIds, preview: false });
-  };
-  const handleDubDownload = async () => {
-    await finalizeTtsBeforeExport();
-    // Build selected tracks from all known tracks, matching the checkbox `!== false` logic
-    const selected = [];
-    if (exportTracks['original'] !== false) selected.push('original');
-    dubTracks.forEach((t) => {
-      if (exportTracks[t] !== false) selected.push(t);
-    });
-    const tracksParam = selected.join(',');
-    const burnParam = burnSubs ? `&burn_subs=1&dual=${dualSubs ? 1 : 0}` : '';
-    triggerDownload(
-      `${API}/dub/download/${dubJobId}/dubbed_video.mp4?preserve_bg=${preserveBg}&default_track=${defaultTrack}&include_tracks=${encodeURIComponent(tracksParam)}${burnParam}`,
-      'dubbed_video.mp4',
-    );
-  };
-  const handleDubAudioDownload = async () => {
-    await finalizeTtsBeforeExport();
-    triggerDownload(
-      `${API}/dub/download-audio/${dubJobId}/dubbed_audio.wav?preserve_bg=${preserveBg}`,
-      'dubbed_audio.wav',
-    );
-  };
-  // Generic audio export wrapper — MP3, Clips, Stems all need preview segs
-  // upgraded before mux. Subtitle exports (SRT/VTT) skip this.
-  const handleAudioExport = async (url, filename) => {
-    await finalizeTtsBeforeExport();
-    triggerDownload(url, filename);
-  };
-  const resetDub = () => {
-    setDubJobId(null);
-    setDubStep('idle');
-    setDubSegments([]);
-    setDubFilename('');
-    setDubDuration(0);
-    setDubError('');
-    setDubVideoFile(null);
-    setDubTracks([]);
-    setDubProgress({ current: 0, total: 0, text: '' });
-    setDubTranscript('');
-    setShowTranscript(false);
-    setPreviewAudios({});
-    setDubLocalBlobUrl((prev) => {
-      if (prev?.videoUrl?.startsWith('blob:')) URL.revokeObjectURL(prev.videoUrl);
-      if (prev?.audioUrl?.startsWith('blob:') && prev.audioUrl !== prev.videoUrl)
-        URL.revokeObjectURL(prev.audioUrl);
-      return null;
-    });
-    setActiveProject(null);
-  };
-
-  // ═══ STUDIO PROJECT CRUD ═══
-  const saveProject = async () => {
-    if (dubStep === 'idle') {
-      toast.error(i18n.t('app.toast_upload_first'));
-      return;
-    }
-    const name = activeProjectName || dubFilename || `Project ${new Date().toLocaleString()}`;
-    const statePayload = {
-      name,
-      video_path: dubFilename || null,
-      duration: dubDuration || null,
-      state: {
-        dubJobId,
-        dubFilename,
-        dubDuration,
-        dubSegments,
-        dubLang,
-        dubLangCode,
-        dubDialect,
-        dubInstruct,
-        dubTracks,
-        dubStep,
-        dubTranscript,
-        preserveBg,
-        defaultTrack,
-        speakerClones,
-        // P1.4 — multi-language batch setup + export-track prefs travel with
-        // the project. Additive: loaders default them when absent (see
-        // utils/projectState.js).
-        multiLangMode,
-        multiLangs,
-        exportTracks,
-        // P1.3 — per-language segment fingerprints, so reopening a project
-        // keeps every track's "Regen N changed" plan. Additive: legacy
-        // loaders ignore the key; segments' `translations` maps ride along
-        // inside dubSegments above.
-        segHashesByLang: fingerprintsByLang,
-      },
-    };
-    try {
-      const data = await apiSaveProject(statePayload, activeProjectId);
-      setActiveProject(data.id, name);
-      toast.success(
-        activeProjectId ? i18n.t('app.toast_project_saved') : i18n.t('app.toast_project_created'),
-      );
-      loadProjects();
-    } catch (err) {
-      toast.error(i18n.t('app.toast_save_failed', { message: err.message }));
-    }
-  };
-
-  const loadProject = async (projectOrId) => {
-    const pid = typeof projectOrId === 'string' ? projectOrId : projectOrId?.id;
-    try {
-      const data = await apiLoadProject(pid);
-      const s = data.state || {};
-      setMode('dub');
-      setActiveProject(data.id, data.name);
-      setDubJobId(s.dubJobId || null);
-      setDubFilename(s.dubFilename || data.video_path || '');
-      setDubDuration(s.dubDuration || data.duration || 0);
-      setDubSegments(
-        (s.dubSegments || []).map((x) => ({
-          ...x,
-          text_original: x.text_original || x.text || '',
-        })),
-      );
-      setDubLang(s.dubLang || 'Auto');
-      setDubLangCode(s.dubLangCode || 'en');
-      setDubDialect(s.dubDialect || '');
-      setDubInstruct(s.dubInstruct || '');
-      setDubTracks(s.dubTracks || []);
-      setDubTranscript(s.dubTranscript || '');
-      setPreserveBg(s.preserveBg !== undefined ? s.preserveBg : true);
-      setDefaultTrack(s.defaultTrack !== undefined ? s.defaultTrack : 'original');
-      setDubStep(s.dubStep === 'done' ? 'done' : s.dubSegments?.length ? 'editing' : 'idle');
-      // Phase 4.5 — rehydrate per-segment fingerprints. The incremental plan
-      // immediately shows "N segments changed" for any segments edited after
-      // the last generate. P1.3: prefer the per-language map; a legacy flat
-      // `segHashes` can only describe the project's saved target language.
-      if (
-        s.segHashesByLang &&
-        typeof s.segHashesByLang === 'object' &&
-        !Array.isArray(s.segHashesByLang)
-      ) {
-        setFingerprintsByLang(s.segHashesByLang);
-      } else {
-        setLastGenFingerprints(s.segHashes || {}, s.dubLangCode || 'en');
-      }
-      setSpeakerClones(s.speakerClones || {});
-      // P1.4 — restore multi-lang picks; legacy payloads default to off/empty
-      // and leave the in-session exportTracks untouched (null sentinel).
-      const extras = restoreProjectExtras(s);
-      setMultiLangMode(extras.multiLangMode);
-      setMultiLangs(extras.multiLangs);
-      if (extras.exportTracks) setExportTracks(extras.exportTracks);
-      toast.success(i18n.t('app.toast_opened', { name: data.name }));
-    } catch (err) {
-      toast.error(err.message);
-    }
-  };
-
-  const deleteProject = async (projectId, e) => {
-    if (e) e.stopPropagation();
-    if (!(await askConfirm('Delete this project? This cannot be undone.'))) return;
-    try {
-      await apiDeleteProject(projectId);
-      if (activeProjectId === projectId) {
-        setActiveProject(null);
-      }
-      loadProjects();
-      toast.success(i18n.t('app.toast_project_deleted'));
-    } catch (err) {
-      toast.error(err.message);
-    }
-  };
-
-  const renameProject = async (projectId, nextName) => {
-    const name = (nextName || '').trim();
-    if (!name) return;
-    try {
-      await apiRenameProject(projectId, name);
-      if (activeProjectId === projectId) setActiveProject(projectId, name);
-      loadProjects();
-    } catch (err) {
-      toast.error(err.message);
-    }
-  };
-
-  const restoreDubHistory = (item) => {
-    try {
-      if (!item.job_data) return;
-      const job = JSON.parse(item.job_data);
-      setMode('dub');
-      setDubJobId(item.id);
-      setDubFilename(job.filename || '');
-      setDubDuration(job.duration || 0);
-      setDubSegments(
-        (job.segments || []).map((s, i) => ({
-          ...s,
-          id: s.id != null ? String(s.id) : String(i),
-          text_original: s.text_original || s.text || '',
-        })),
-      );
-      setDubTranscript(job.full_transcript || '');
-      // Older DBs froze the language/language_code COLUMNS at the ingest-time
-      // "" (the UPSERT didn't update them until #P0 fixed it), but the job_data
-      // JSON always carried the value generation set. Falling back to job_data
-      // restores existing rows correctly without a migration.
-      setDubLang(item.language || job.language || 'Auto');
-      setDubLangCode(item.language_code || job.language_code || 'und');
-      setDubTracks(Object.keys(job.dubbed_tracks || {}));
-      setDubStep(Object.keys(job.dubbed_tracks || {}).length > 0 ? 'done' : 'editing');
-      // Phase 4.5 — seg_hashes are written per successful segment by
-      // dub_generate.py. Reloading a half-generated dub lets the "Regen N
-      // changed" button resume right where the crash happened. P1.3: prefer
-      // the per-language map (multi-track jobs); a legacy flat map belongs to
-      // the job's last-generated language — the code restored just above.
-      if (
-        job.seg_hashes_by_lang &&
-        typeof job.seg_hashes_by_lang === 'object' &&
-        !Array.isArray(job.seg_hashes_by_lang)
-      ) {
-        setFingerprintsByLang(job.seg_hashes_by_lang);
-      } else {
-        setLastGenFingerprints(
-          job.seg_hashes || {},
-          item.language_code || job.language_code || 'und',
-        );
-      }
-      // Rehydrate path-free cast sources. Legacy heuristic jobs may have only
-      // per-segment references; castSourcesFromJob recovers those too.
-      setSpeakerClones(castSourcesFromJob(job));
-    } catch (e) {
-      console.error('Failed to restore job_data', e);
-    }
-  };
 
   const restoreHistory = (item) => {
     // History `mode` values stay 'clone'/'design' forever — only the
@@ -1101,8 +684,6 @@ function App() {
     if (item.language) setLanguage(item.language);
     if (item.profile_id) setSelectedProfile(item.profile_id);
 
-    // Switch to studio tab
-    setSidebarTab('projects');
     toast.success(i18n.t('app.toast_restored_state'));
   };
 
@@ -1297,11 +878,6 @@ function App() {
           used to collapse into the evidence-free "can't reach the backend". */}
       <BackendStartFailureNotice />
 
-      {/* One-time analytics consent ask for installs that predate the
-          first-run consent step. Renders nothing once any choice was made.
-          Source builds get it too since #1193 (in-repo default token). */}
-      <AnalyticsConsentBanner />
-
       {/* First-run-only offer to switch the UI to English (#1215). Shows only
           when the auto-detected language isn't English AND the user hasn't
           chosen a language — renders nothing otherwise. UI convenience only. */}
@@ -1353,50 +929,9 @@ function App() {
               <VoiceProfile
                 voiceId={activeVoiceId}
                 onBack={closeVoiceProfile}
-                onOpenProject={(id) => {
-                  loadProject(id);
-                }}
                 onDeleted={() => {
                   loadProfiles();
                   closeVoiceProfile();
-                }}
-              />
-            </Suspense>
-          </ErrorBoundary>
-        ) : mode === 'queue' ? (
-          <ErrorBoundary name="batch-queue">
-            <Suspense fallback={<LazyFallback />}>
-              <BatchQueue onBack={() => setMode('launchpad')} />
-            </Suspense>
-          </ErrorBoundary>
-        ) : mode === 'tools' ? (
-          <ErrorBoundary name="tools">
-            <Suspense fallback={<LazyFallback />}>
-              <ToolsPage onBack={() => setMode('launchpad')} />
-            </Suspense>
-          </ErrorBoundary>
-        ) : mode === 'projects' ? (
-          <ErrorBoundary name="projects">
-            <Suspense fallback={<LazyFallback />}>
-              <ProjectsPage
-                studioProjects={studioProjects}
-                profiles={profiles}
-                history={history}
-                exportHistory={exportHistory}
-                storyProjects={storyProjects}
-                onOpenDub={(id) => {
-                  loadProject(id);
-                  setMode('dub');
-                }}
-                onOpenProfile={(id) => {
-                  openVoiceProfile(id);
-                }}
-                onOpenStory={(id) => {
-                  loadStoryProject(id);
-                  setMode('stories');
-                }}
-                onRevealExport={(path) => {
-                  exportReveal({ path }).catch(() => {});
                 }}
               />
             </Suspense>
@@ -1413,141 +948,18 @@ function App() {
               <TranscriptionsPage />
             </Suspense>
           </ErrorBoundary>
-        ) : mode === 'stories' ? (
-          <ErrorBoundary name="stories">
-            <Suspense fallback={<LazyFallback />}>
-              <StoriesEditor profiles={profiles} />
-            </Suspense>
-          </ErrorBoundary>
-        ) : mode === 'audiobook' ? (
-          <ErrorBoundary name="audiobook">
-            <Suspense fallback={<LazyFallback />}>
-              <AudiobookTab profiles={profiles} />
-            </Suspense>
-          </ErrorBoundary>
-        ) : mode === 'donate' ? (
-          <ErrorBoundary name="donate">
-            <Suspense fallback={<LazyFallback />}>
-              <SupportPage initialView="support" onBack={() => setMode('launchpad')} />
-            </Suspense>
-          </ErrorBoundary>
-        ) : mode === 'enterprise' ? (
-          <ErrorBoundary name="enterprise">
-            <Suspense fallback={<LazyFallback />}>
-              <SupportPage initialView="license" onBack={() => setMode('launchpad')} />
-            </Suspense>
-          </ErrorBoundary>
-        ) : mode === 'contact' ? (
-          <ErrorBoundary name="contact">
-            <Suspense fallback={<LazyFallback />}>
-              <ContactPage onBack={() => setMode('launchpad')} />
-            </Suspense>
-          </ErrorBoundary>
         ) : mode === 'launchpad' ? (
           <ErrorBoundary name="launchpad">
             <Suspense fallback={<LazyFallback />}>
               <Launchpad
                 profiles={profiles}
                 studioProjects={studioProjects}
-                dubHistory={dubHistory}
-                exportHistory={exportHistory}
                 setMode={setMode}
                 setIsCompareModalOpen={setIsCompareModalOpen}
                 handleSelectProfile={handleSelectProfile}
-                loadProject={loadProject}
               />
             </Suspense>
           </ErrorBoundary>
-        ) : mode === 'dub' ? (
-          <div
-            className={`studio-with-history ${dubStep === 'idle' ? '' : 'studio-with-history--editing'}`}
-          >
-            <div className="studio-with-history__main">
-              <ErrorBoundary name="dub">
-                <Suspense fallback={<LazyFallback />}>
-                  <DubTab
-                    // Non-serialisable / local state only — all pipeline fields now
-                    // flow through the Zustand store.
-                    dubVideoFile={dubVideoFile}
-                    dubLocalBlobUrl={dubLocalBlobUrl}
-                    transcribeElapsed={transcribeElapsed}
-                    transcribeProgress={transcribeProgress}
-                    asrInstall={asrInstall}
-                    translateProvider={translateProvider}
-                    setTranslateProvider={setTranslateProvider}
-                    onGlossaryChange={setGlossaryTerms}
-                    showTranscript={showTranscript}
-                    setShowTranscript={setShowTranscript}
-                    profiles={profiles}
-                    segmentPreviewLoading={segmentPreviewLoading}
-                    selectedSegIds={selectedSegIds}
-                    setDubVideoFile={setDubVideoFile}
-                    setDubLocalBlobUrl={setDubLocalBlobUrl}
-                    // Handlers — close over App.jsx scope so stay prop-threaded.
-                    handleDubAbort={handleDubAbort}
-                    handleDubUpload={handleDubUpload}
-                    handleDubIngestUrl={handleDubIngestUrl}
-                    handleDubRetryTranscribe={handleDubRetryTranscribe}
-                    handleInstallMissingAsr={handleInstallMissingAsr}
-                    handleDubStop={handleDubStop}
-                    handleDubGenerate={handleDubGenerate}
-                    handleDubDownload={handleDubDownload}
-                    handleDubAudioDownload={handleDubAudioDownload}
-                    handleAudioExport={handleAudioExport}
-                    speakerClones={speakerClones}
-                    handleSegmentPreview={handleSegmentPreview}
-                    onDirectSegment={openDirection}
-                    incrementalPlan={incrementalPlan}
-                    handleTranslateAll={handleTranslateAll}
-                    handleCleanupSegments={handleCleanupSegments}
-                    handleDubImportSrt={handleDubImportSrt}
-                    triggerDownload={triggerDownload}
-                    fileToMediaUrl={fileToMediaUrl}
-                    editSegments={editSegments}
-                    saveProject={saveProject}
-                    resetDub={resetDub}
-                    segmentEditField={segmentEditField}
-                    segmentDelete={segmentDelete}
-                    segmentRestoreOriginal={segmentRestoreOriginal}
-                    pasteTranslations={pasteTranslations}
-                    segmentSplit={segmentSplit}
-                    segmentMerge={segmentMerge}
-                    segmentMoveResize={segmentMoveResize}
-                    timelineSelSegId={timelineSelSegId}
-                    setTimelineSelSegId={setTimelineSelSegId}
-                    toggleSegSelect={toggleSegSelect}
-                    selectAllSegs={selectAllSegs}
-                    clearSegSelection={clearSegSelection}
-                    bulkApplyToSelected={bulkApplyToSelected}
-                    bulkDeleteSelected={bulkDeleteSelected}
-                  />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
-            {/* Dub home: the Projects + History landing shows only when no project
-              is being edited. Opening/creating one switches to the full-width
-              editor (dubStep !== 'idle'). */}
-            {dubStep === 'idle' && (
-              <div className="studio-right">
-                <WorkspaceProjects
-                  projects={studioProjects}
-                  activeProjectId={activeProjectId}
-                  canSave={dubStep !== 'idle' || !!dubVideoFile}
-                  saveProject={saveProject}
-                  loadProject={loadProject}
-                  deleteProject={deleteProject}
-                  renameProject={renameProject}
-                />
-                <WorkspaceHistory
-                  variant="dub"
-                  dubHistory={dubHistory}
-                  restoreDubHistory={restoreDubHistory}
-                  deleteHistory={deleteHistory}
-                  clearHistory={() => clearWorkspaceHistory('dub')}
-                />
-              </div>
-            )}
-          </div>
         ) : (
           <div className="studio-with-history">
             <div className="studio-with-history__main">
@@ -1668,12 +1080,8 @@ function App() {
           history={history}
           dubHistory={dubHistory}
           exportHistory={exportHistory}
-          dubVideoFile={dubVideoFile}
           selectedProfile={selectedProfile}
           previewLoading={previewLoading}
-          saveProject={saveProject}
-          loadProject={loadProject}
-          deleteProject={deleteProject}
           handleSelectProfile={handleSelectProfile}
           handleDeleteProfile={handleDeleteProfile}
           handleOpenVoiceProfile={openVoiceProfile}
@@ -1685,7 +1093,6 @@ function App() {
             setIsVoicePreviewOpen(true);
           }}
           restoreHistory={restoreHistory}
-          restoreDubHistory={restoreDubHistory}
           handleSaveHistoryAsProfile={handleSaveHistoryAsProfile}
           handleNativeExport={handleNativeExport}
           revealInFolder={revealInFolder}
@@ -1694,14 +1101,6 @@ function App() {
           loadDubHistory={loadDubHistory}
         />
       </Suspense>
-
-      {/* ═══ DIRECTION DIALOG (Phase 4.2) ═══ */}
-      <DirectionDialog
-        open={!!directionSegId}
-        seg={directionSegId ? dubSegments.find((s) => s.id === directionSegId) : null}
-        onSave={saveDirection}
-        onClose={closeDirection}
-      />
 
       {/* ═══ A/B VOICE COMPARISON MODAL ═══ */}
       {isCompareModalOpen && (

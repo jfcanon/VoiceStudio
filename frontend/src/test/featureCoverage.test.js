@@ -21,7 +21,24 @@ const read = (p) => fs.readFileSync(path.join(SRC, p), 'utf8');
 
 // Legacy/alias modes intentionally kept in the union but routed elsewhere
 // (see uiSlice.ts comments): clone/design → studio; generate/batch unused.
-const LEGACY_MODES = new Set(['clone', 'design', 'generate', 'batch']);
+// Local MVP fork: dubbing, stories, audiobook, tools (isolation/watermark),
+// batch queue, OmniDrive projects, and the support/contact pages are out of
+// MVP scope — their modes stay in the union but have no render branch.
+const LEGACY_MODES = new Set([
+  'clone',
+  'design',
+  'generate',
+  'batch',
+  'dub',
+  'stories',
+  'audiobook',
+  'tools',
+  'queue',
+  'projects',
+  'donate',
+  'enterprise',
+  'contact',
+]);
 
 function appModes() {
   const ts = read('store/uiSlice.ts');

@@ -1,20 +1,13 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import {
   Scale,
   Fingerprint,
   Wand2,
-  Film,
   Lock,
-  BookOpen,
-  BookMarked,
   LibraryBig,
   FileText,
-  HardDrive,
-  Download,
-  ArrowRight,
 } from 'lucide-react';
-import { API } from '../api/client';
 import { useAppStore } from '../store';
 import ReadinessChecklist from '../components/ReadinessChecklist';
 import LaunchpadDeck from '../components/LaunchpadDeck';
@@ -40,20 +33,6 @@ const projAction =
 const sectionTitle =
   "[font-family:var(--chrome-font-mono)] text-[length:var(--chrome-label-size)] font-semibold uppercase [letter-spacing:var(--chrome-label-track)] text-[color:var(--chrome-fg-muted)] m-0 mb-[12px] flex items-center gap-[8px] after:content-[''] after:flex-1 after:h-px after:[background-image:radial-gradient(circle,rgba(255,255,255,0.12)_1px,transparent_1px)] after:[background-size:6px_1px]";
 
-function DubThumb({ jobId, fallback }) {
-  const [failed, setFailed] = useState(false);
-  if (!jobId || failed) return fallback;
-  return (
-    <img
-      src={`${API}/dub/thumb/${jobId}`}
-      alt=""
-      onError={() => setFailed(true)}
-      loading="lazy"
-      className="w-full h-full object-cover [border-radius:inherit] block"
-    />
-  );
-}
-
 // Squiggle was replaced by the .lp-hero__sweep span — a pure-CSS animated
 // accent line under the H1. Less static, no SVG dependency.
 // The feature-card tile (.lp-action-card + waveform + hover-forward) lives in
@@ -62,11 +41,9 @@ function DubThumb({ jobId, fallback }) {
 export default function Launchpad({
   profiles,
   studioProjects,
-  exportHistory = [],
   setMode,
   setIsCompareModalOpen,
   handleSelectProfile,
-  loadProject,
 }) {
   const { t } = useTranslation();
   // Clone/Design are no longer separate navigation modes — both cards open
@@ -78,14 +55,11 @@ export default function Launchpad({
   };
   const cloneProfiles = profiles.filter((p) => !p.instruct);
   const designProfiles = profiles.filter((p) => !!p.instruct);
-  const demoProfile = profiles.find((p) => p.id === 'demo0001');
-  // Most-recent exported files from OmniDrive — a quick "pick up where you left
-  // off" strip. exportHistory arrives newest-first from /export/history.
-  const recentFiles = exportHistory.slice(0, 4);
 
-  // The seven feature cards — single source of truth for the full-width
+  // The five feature cards — single source of truth for the full-width
   // responsive grid (LaunchpadDeck) so hues, i18n keys, counts and navigation
-  // targets stay in one place.
+  // targets stay in one place. Local MVP fork: dubbing, stories, and audiobook
+  // are out of scope, so their cards are gone.
   const features = [
     {
       key: 'clone',
@@ -104,31 +78,6 @@ export default function Launchpad({
       desc: t('launchpad.design_desc'),
       count: designProfiles.length,
       go: () => openStudio('design'),
-    },
-    {
-      key: 'dub',
-      hue: '#fe8019',
-      Icon: Film,
-      title: t('launchpad.dub_title'),
-      desc: t('launchpad.dub_desc'),
-      count: studioProjects.length,
-      go: () => setMode('dub'),
-    },
-    {
-      key: 'stories',
-      hue: '#83a598',
-      Icon: BookOpen,
-      title: t('launchpad.stories_title'),
-      desc: t('launchpad.stories_desc'),
-      go: () => setMode('stories'),
-    },
-    {
-      key: 'audiobook',
-      hue: '#458588',
-      Icon: BookMarked,
-      title: t('launchpad.audiobook_title'),
-      desc: t('launchpad.audiobook_desc'),
-      go: () => setMode('audiobook'),
     },
     {
       key: 'gallery',
@@ -237,66 +186,6 @@ export default function Launchpad({
         <LaunchpadDeck features={features} narrow={shellNarrow} />
       </div>
 
-      {/* Recent files from OmniDrive — last few exports, with a jump to the
-          full file browser (the Projects/OmniDrive page). */}
-      {recentFiles.length > 0 && (
-        <div className="pt-[28px] px-[44px] pb-[40px] relative z-[1] max-[900px]:pt-0 max-[900px]:px-[20px] max-[900px]:pb-[24px] max-[640px]:pt-0 max-[640px]:px-[12px] max-[640px]:pb-[16px]">
-          <div className="flex items-center justify-between gap-[12px] mb-[12px]">
-            <div className="[font-family:var(--chrome-font-mono)] text-[length:var(--chrome-label-size)] font-semibold uppercase [letter-spacing:var(--chrome-label-track)] text-[color:var(--chrome-fg-muted)] m-0 flex items-center gap-[8px]">
-              <HardDrive size={12} color="#fabd2f" /> {t('launchpad.recent_files')}
-            </div>
-            <button
-              type="button"
-              className="inline-flex items-center gap-[5px] shrink-0 border-0 bg-transparent cursor-pointer py-[2px] px-[4px] [font-family:var(--chrome-font-mono)] text-[length:var(--chrome-label-size)] font-semibold uppercase [letter-spacing:var(--chrome-label-track)] text-[color:var(--chrome-fg-muted)] [transition:color_0.15s_ease] hover:text-[#fabd2f]"
-              onClick={() => setMode('projects')}
-            >
-              {t('launchpad.view_all_files')} <ArrowRight size={12} />
-            </button>
-          </div>
-          <div className="grid [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))] gap-[8px]">
-            {recentFiles.map((f, i) => {
-              const name =
-                (f.destination_path || f.path || f.filename || '').split('/').pop() ||
-                t('launchpad.file');
-              return (
-                <button
-                  key={f.id || f.destination_path || i}
-                  type="button"
-                  className={`${projCard} w-full [font:inherit] text-inherit text-left cursor-pointer`}
-                  onClick={() => setMode('projects')}
-                  title={name}
-                >
-                  <div className={`${projIcon} bg-[rgba(250,189,47,0.1)]`}>
-                    <Download size={14} color="#fabd2f" />
-                  </div>
-                  <div className={projInfo}>
-                    <div className={projName}>{name}</div>
-                    {f.mode && <div className={projMeta}>{f.mode}</div>}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Demo profile callout */}
-      {demoProfile && profiles.length === 1 && studioProjects.length === 0 && (
-        <div className="flex items-center gap-[10px] py-[10px] px-[18px] mt-[8px] mx-[44px] mb-0 bg-[color-mix(in_srgb,var(--chrome-accent)_8%,var(--chrome-bg))] border border-solid border-[var(--chrome-accent-border)] rounded-[var(--chrome-radius-pill)] text-[0.76rem] text-[color:var(--chrome-fg)] relative z-[1] animate-[lpFadeUp_0.5s_cubic-bezier(0.4,0,0.2,1)_both]">
-          <span className="text-[1.1rem]">👋</span>
-          <span>{t('launchpad.demo_callout')}</span>
-          <button
-            className="ml-auto py-[4px] px-[14px] [font-family:var(--font-sans)] text-[0.7rem] font-semibold rounded-[var(--chrome-radius-pill)] bg-[var(--chrome-accent-bg)] border border-solid border-[var(--chrome-accent-border)] text-[color:var(--chrome-accent)] cursor-pointer [transition:background_var(--dur-fast)] hover:bg-[color-mix(in_srgb,var(--chrome-accent)_22%,transparent)]"
-            onClick={() => {
-              openStudio('audio');
-              handleSelectProfile(demoProfile);
-            }}
-          >
-            {t('launchpad.try_it')}
-          </button>
-        </div>
-      )}
-
       {/* Recent Projects */}
       {(profiles.length > 0 || studioProjects.length > 0) && (
         <div className="pt-[28px] px-[44px] pb-[40px] relative z-[1] max-[900px]:pt-0 max-[900px]:px-[20px] max-[900px]:pb-[24px] max-[640px]:pt-0 max-[640px]:px-[12px] max-[640px]:pb-[16px]">
@@ -364,42 +253,6 @@ export default function Launchpad({
                         onClick={() => {
                           openStudio('design');
                           handleSelectProfile(p);
-                        }}
-                      >
-                        {t('launchpad.open')}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Dubbing projects */}
-            {studioProjects.length > 0 && (
-              <div>
-                <div className={sectionTitle}>
-                  <Film size={12} color="#fe8019" /> {t('launchpad.dubbing_projects')}
-                </div>
-                <div className="flex flex-col gap-[8px]">
-                  {studioProjects.map((proj) => (
-                    <div key={proj.id} className={projCard}>
-                      <div className={`${projIcon} bg-[rgba(254,128,25,0.1)] overflow-hidden`}>
-                        <DubThumb
-                          jobId={proj.state?.dubJobId || proj.id}
-                          fallback={<Film size={14} color="#fe8019" />}
-                        />
-                      </div>
-                      <div className={projInfo}>
-                        <div className={projName}>{proj.name}</div>
-                        <div className={projMeta}>
-                          {proj.video_path || t('launchpad.audio_only')}
-                        </div>
-                      </div>
-                      <button
-                        className={projAction}
-                        onClick={() => {
-                          setMode('dub');
-                          loadProject(proj.id);
                         }}
                       >
                         {t('launchpad.open')}

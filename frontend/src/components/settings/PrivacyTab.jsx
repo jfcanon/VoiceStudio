@@ -5,7 +5,6 @@ import { Badge, Button } from '../../ui';
 import { useAppStore } from '../../store';
 import { SettingsSection } from './primitives';
 import Row from './Row';
-import AnalyticsOptIn from './AnalyticsOptIn';
 import WatermarkControl from './WatermarkControl';
 
 // Providers that send dialogue text to a third-party service vs. the ones that
@@ -77,14 +76,13 @@ export default function PrivacyTab({ info }) {
           </Badge>
         }
       />
-      {/* Opt-in product analytics. Renders nothing when the build ships no
-          destination, and is OFF until the user turns it on — so the
-          "no tracking" default above stays true for everyone who doesn't. */}
+      {/* Local MVP fork: product analytics were removed — nothing can be sent,
+          so no opt-in control is rendered. The "no tracking" default above is
+          unconditional now. */}
       {/* The provenance mark. ON by default (the opposite of analytics
           below), and now actually controllable — errors.a_watermark has told
           users it lives here since watermarking shipped. */}
       <WatermarkControl />
-      <AnalyticsOptIn />
     </SettingsSection>
   );
 }

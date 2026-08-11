@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Loader, RotateCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSetupStatus, usePreflight } from '../api/hooks';
-import { apiJson } from '../api/client';
-import AnalyticsConsentCard from '../components/AnalyticsConsentCard';
 import WizardLibrary from '../components/WizardLibrary';
 import MediaEngineCard from '../components/MediaEngineCard';
 import MirrorRescue from '../components/MirrorRescue';
@@ -226,31 +224,7 @@ export default function SetupWizard({ onReady }) {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
 
-  // Whether to insert the analytics consent step. Resolved once at mount
-  // (the user is on step 0 when this lands, so indices never shift underfoot):
-  // only when the build CAN send and the user was never asked. Since #1193
-  // every build has a destination (in-repo default token), so source builds
-  // get this same ask; skipping the wizard still means analytics stays off.
-  const [askConsent, setAskConsent] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    apiJson('/api/settings/analytics')
-      .then((s) => {
-        if (!cancelled && s?.available && !s?.prompted && !s?.opted_in) setAskConsent(true);
-      })
-      .catch(() => {
-        /* backend unreachable → no consent step; the one-time banner asks later */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const stepIds = useMemo(
-    () =>
-      askConsent ? ['system', 'models', 'consent', 'dictation'] : ['system', 'models', 'dictation'],
-    [askConsent],
-  );
+  const stepIds = useMemo(() => ['system', 'models', 'dictation'], []);
   const stepId = stepIds[Math.min(step, stepIds.length - 1)];
 
   // TanStack Query — shared cache, auto-refetch on step 2 (models)
@@ -283,13 +257,11 @@ export default function SetupWizard({ onReady }) {
   const STEP_SUBTITLES = {
     system: t('setup.system_check_desc'),
     models: t('setup.install_models_desc'),
-    consent: t('consent.title', 'Help improve VoiceStudio?'),
     dictation: t('setup.try_dictation'),
   };
   const STEP_LABELS = {
     system: t('setup.system_check'),
     models: t('firstrun.stage_models', 'Models & engines'),
-    consent: t('consent.step_label', 'Improve VoiceStudio'),
     dictation: t('setup.try_dictation'),
   };
 
@@ -425,32 +397,6 @@ export default function SetupWizard({ onReady }) {
               >
                 {modelsReady ? t('setup.models_ready') : t('setup.waiting_models')}
               </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Analytics consent — asked exactly once, only in builds that ship a
-            destination. Both buttons advance; there is no "yes by default",
-            and jumping past via the rail (skipping) leaves analytics OFF. */}
-        {stepId === 'consent' && (
-          <div className="flex min-h-0 flex-auto flex-col gap-3" key="step-consent">
-            <section
-              className="fr-rise flex min-h-0 flex-1 flex-col gap-2.5"
-              style={{ '--rise': 1 }}
-            >
-              <SectionHead>{t('consent.title', 'Help improve VoiceStudio?')}</SectionHead>
-              <div className="min-h-0 flex-1 overflow-y-auto pt-2">
-                <AnalyticsConsentCard onDone={() => setStep(step + 1)} />
-              </div>
-            </section>
-            <div
-              className="fr-rise flex shrink-0 items-center justify-between gap-4 border-t border-border pt-3"
-              style={{ '--rise': 2 }}
-            >
-              <Button variant="ghost" size="sm" onClick={() => setStep(step - 1)}>
-                ← {t('setup.back')}
-              </Button>
-              <span />
             </div>
           </div>
         )}
