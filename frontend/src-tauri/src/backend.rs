@@ -389,8 +389,7 @@ pub fn spawn_backend<R: tauri::Runtime>(app: &tauri::AppHandle<R>, progress: Opt
         }
     }
     // Local MVP fork: no analytics — nothing is passed to the child beyond the
-    // path/env it needs to run. Telemetry was removed (core/analytics.py is an
-    // inert stub), so there is no POSTHOG_* destination to hand over.
+    // path/env it needs to run (telemetry was removed).
     let app_data = app.path().app_local_data_dir().unwrap_or_default();
     if let Some(ffmpeg_path) = resolve_ffmpeg(app, &app_data) {
         env.push(("FFMPEG_PATH".into(), ffmpeg_path.to_string_lossy().into()));
@@ -495,13 +494,6 @@ pub fn spawn_backend<R: tauri::Runtime>(app: &tauri::AppHandle<R>, progress: Opt
 mod tests {
     use super::*;
     use std::io;
-
-    // #1123 shipped backend analytics that could never run: core/analytics.py reads
-    // POSTHOG_PROJECT_TOKEN from the runtime environment, and nothing on the user's
-    // machine ever set it. These pin the wiring that fixes it. Since #1193 the
-    // backend also carries an in-repo default token, so what's pinned here is the
-    // OVERRIDE precedence (baked > in-repo default, process env > baked) plus the
-    // "installer" channel marker this shell stamps on the child.
 
     /// The env-var tests below mutate process-global state; keep them off each
     /// other's toes (cargo runs tests in threads by default).

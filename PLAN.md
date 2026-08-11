@@ -113,3 +113,29 @@ Legend: ✅ carry upstream mitigation verbatim · ⚠️ fix the upstream gap ·
 - **AGPL-3.0:** our fork inherits network-copyleft; any server-mode addition later must keep source sharing or use a commercial license.
 - **Intel macOS:** upstream PyTorch dropped Intel-Mac wheels — local backend unsupported there; MVP targets Apple Silicon / Windows / Linux.
 - **Model size:** OmniVoice + whisper models need ~10 GB disk; first-run download flow must be clear.
+
+---
+
+## 9. Status (2026-08-11)
+
+| Phase | Status | Evidence |
+|---|---|---|
+| 0. Scaffold / trim | ✅ | Fork at upstream tip `8af10ea0`; heavy sidecar engines, deploy/notebooks/examples removed |
+| 1. Harden | ✅ | WS Origin guards, prompt-isolation, MCP caps, telemetry removal, hardened CSP — all with regression tests |
+| 2. Backend MVP | ✅ | Boots on macOS arm64/MPS; self-check healthy; clone→TTS→STT round-trip verified via `/v1/audio/*` |
+| 3. Frontend MVP | ✅ | Nav trimmed to Launchpad/Voice/Gallery/Transcriptions/Settings; 1791 vitest green; oxlint clean; CI typecheck clean |
+| 4. Shell + packaging | ✅ | `cargo check` + 117 rust tests green; signed `VoiceStudio.app` builds and launches; DMG produced (hdiutil) |
+| 5. Verification | 🔄 in progress | Security test subset (160+ tests) green; full backend suite running |
+
+Verified end-to-end on this machine (macOS 26.4.1, Apple Silicon, 36 GB RAM):
+`POST /v1/audio/speech` → 4.16 s real 24 kHz WAV (MPS); the same clip transcribed
+back verbatim; a clone profile created from the clip and re-synthesized with the
+cloned voice. All local, no API key.
+
+Known packaging caveats:
+- DMG bundling used `hdiutil` because the bundled `create-dmg` fork lacks its
+  args outside the Tauri CLI path; CI's release workflow provides the proper
+  invocation.
+- The `.app` bundles placeholder `uv`/`ffmpeg` binaries (release pipeline
+  downloads the real ones); the shell, backend, and UI are fully functional.
+- No code signing key / notarization creds in this environment (ad-hoc `-` identity).

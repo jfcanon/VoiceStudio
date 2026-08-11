@@ -5,6 +5,14 @@
   <h3>Make voices. Tell stories. Keep the files. ♡</h3>
   <p>Clone, design, dub, dictate, and build audiobooks in one open-source desktop studio.<br/><b>Local-first by default.</b> No subscription or usage meter. Optional online services stay opt-in.</p>
 
+  <blockquote><b>Local MVP fork.</b> This repository is a hardened fork trimmed to a
+  local-first core: voice cloning, voice design, TTS, transcription, the
+  OpenAI-compatible API, and the MCP server. The heavy opt-in TTS sidecar engines
+  (IndexTTS 2.5, MOSS-TTS-v1.5, dots.tts, Confucius4, PocketTTS, Supertonic-3),
+  the Dubbing/Stories/Audiobook/Batch workspaces, and all product telemetry were
+  removed; WebSocket Origin guards, prompt-injection isolation, MCP resource caps,
+  and a hardened Tauri CSP were added. See <a href="CHANGELOG.md">CHANGELOG.md</a>.</blockquote>
+
   <p>
     <a href="#quickstart">Quickstart</a> ·
     <a href="#features">Features</a> ·
