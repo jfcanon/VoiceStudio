@@ -22,6 +22,26 @@ the frozen-backend fallback mirror it for their toolchains.
 - Linux AppImage: a blank white window on rolling distros (Mesa 26.1+) now starts normally
 - Apple Silicon: transcription no longer needs a system ffmpeg, as the docs always said — thanks @gambletan! (#1436)
 - A failed audiobook chapter says why, instead of turning red and saying nothing
+- **This fork trims VoiceStudio to a local-first MVP core** — see the `### Changed` / `### Removed` entries below
+
+### Changed
+
+- The **Local MVP fork** keeps the hardened, loopback-only FastAPI sidecar and the core studio workspaces (Voice clone/design, Gallery, Transcriptions, Settings), and applies the security fixes below.
+- Every WebSocket endpoint (`/ws/events`, `/ws/tts`, `/ws/transcribe`) now refuses handshakes from foreign Origins before `accept()` — the loopback check alone is bypassable by a same-machine browser (CSWSH).
+- Glossary notes and LLM-generated themes injected into translation prompts are now sanitized and wrapped in an explicit data/instructions separator instead of concatenated verbatim.
+- The MCP `generate_speech` tool enforces a 20k-character text cap and bounded speed/steps, matching the audio-size caps on transcribe/clone_voice.
+- The Tauri production CSP now pins `script-src 'self'` (no `'unsafe-eval'`); the permissive CSP is dev-only.
+
+### Removed
+
+- Heavy opt-in TTS sidecar engines (IndexTTS 2.5, MOSS-TTS-v1.5, dots.tts, Confucius4-TTS, PocketTTS, Supertonic-3) and their one-click installers.
+- The Dubbing, Stories, Audiobook, Batch, and OmniDrive-project workspaces from the desktop UI (backend routers stay mounted for the Settings surface).
+- All product telemetry: `core/analytics.py` is an inert stub, the PostHog dependency and token wiring are gone, and the frontend consent prompts are removed — nothing can leave the machine.
+- The `deploy/`, `notebooks/`, and `examples/` top-level directories.
+
+### Tests
+
+- Regression tests for every hardening item: WebSocket Origin guards (`test_ws_origin_guard.py`), prompt-injection isolation (`test_prompt_injection_isolation.py`), MCP tool caps (`test_mcp_tool_caps.py`), and a no-telemetry guard.
 
 ### Changed
 
