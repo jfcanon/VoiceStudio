@@ -118,44 +118,7 @@ class SidecarSpec:
     installed_probe: Callable[[], bool] = field(default=lambda: False)
 
 
-def _indextts_invalidate() -> None:
-    from engines.indextts import bootstrap
-    bootstrap.invalidate()
-
-
-def _indextts_installed() -> bool:
-    from engines.indextts.bootstrap import is_indextts_installed
-    return is_indextts_installed()
-
-
-SPECS: dict[str, SidecarSpec] = {
-    "indextts2": SidecarSpec(
-        engine_id="indextts2",
-        display_name="IndexTTS 2.5",
-        repo_url="https://github.com/index-tts/index-tts.git",
-        tarball_url=(
-            "https://github.com/index-tts/index-tts/archive/"
-            "bf2e967fac7933197143b017a60820b1ad40c448.tar.gz"
-        ),
-        checkout_dirname="index-tts-2.5",
-        env_var="OMNIVOICE_INDEXTTS_DIR",
-        probe_module="indextts.infer_v2_5",
-        repo_ref="indextts-2.5",
-        source_revision="bf2e967fac7933197143b017a60820b1ad40c448",
-        source_required_path="indextts/infer_v2_5.py",
-        weights_repo_id="IndexTeam/IndexTTS-2.5",
-        weights_revision="d0aa86e75bb6f3437f3831e95056fa72842d89ef",
-        weights_subdir="checkpoints",
-        weights_config_name="config_v2_5.yaml",
-        docs_path="docs/engines/indextts.md",
-        # ~0.1 GB source + up to ~6 GB venv (torch + transformers<5) +
-        # ~6 GB weights. Deliberately conservative; the preflight subtracts
-        # whatever a partial install already put on disk.
-        required_bytes=12 * _GIB,
-        invalidate=_indextts_invalidate,
-        installed_probe=_indextts_installed,
-    ),
-}
+SPECS: dict[str, SidecarSpec] = {}
 
 
 def get_spec(engine_id: str) -> Optional[SidecarSpec]:
@@ -183,8 +146,6 @@ def managed_checkout(spec: SidecarSpec) -> Path:
 
 def _legacy_managed_checkouts(spec: SidecarSpec) -> tuple[Path, ...]:
     """App-owned predecessor checkouts retained during in-place upgrades."""
-    if spec.engine_id == "indextts2":
-        return (managed_root(spec) / "index-tts",)
     return ()
 
 
@@ -198,8 +159,7 @@ def _venv_python(venv_dir: Path) -> Path:
 def _locate_uv() -> Optional[str]:
     """Find uv: bundled (Tauri-set OMNIVOICE_BUNDLED_UV) first, then PATH.
 
-    Same resolution order as engines.indextts.bootstrap._locate_uv — the
-    canonical uv-resolution pattern for sidecar venvs.
+    This is the canonical uv-resolution pattern for sidecar venvs.
     """
     bundled = os.environ.get("OMNIVOICE_BUNDLED_UV")
     if bundled and Path(bundled).is_file():

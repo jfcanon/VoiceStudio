@@ -1638,31 +1638,10 @@ class CosyVoiceBackend(TTSBackend):
 
 # ── IndexTTS2 adapter ───────────────────────────────────────────────────────
 #
-# The concrete class lives in ``backend/engines/indextts/__init__.py`` so
-# that ``services.tts_backend`` itself does NOT import
-# ``services.subprocess_backend`` at module load time. That separation
-# breaks the import cycle:
-#
-#     services.subprocess_backend  ──imports──>  services.tts_backend (TTSBackend)
-#     services.tts_backend         ──exports──>  TTSBackend + registry
-#     engines.indextts             ──imports──>  services.subprocess_backend
-#                                  ──exports──>  IndexTTS2Backend
-#
-# The registry below resolves IndexTTS2Backend lazily via the
-# ``_LAZY_REGISTRY`` indirection — see ``get_backend_class`` and
-# ``list_backends``. This was driven by Plan 02-03 (Step 3); see
-# ``engines/indextts/__init__.py`` for the actual class body.
-
-
-# ``IndexTTS2Backend`` is re-exported from ``backend/engines/indextts``
-# via the module-level ``__getattr__`` hook at the bottom of this file
-# (PEP 562). Callers can still write::
-#
-#     from services.tts_backend import IndexTTS2Backend
-#
-# and they receive the same class object as ``engines.indextts.IndexTTS2Backend``.
-# The deferred lookup is what breaks the
-# ``services.subprocess_backend ↔ services.tts_backend`` cycle.
+# Removed in the Local MVP fork: the IndexTTS 2.5 sidecar engine (own venv,
+# Bilibili model license) is out of scope. Backends that live in their own
+# module (to avoid an import cycle with services.subprocess_backend) are
+# registered lazily via ``_LAZY_REGISTRY`` below — see ``get_backend_class``.
 
 
 # ── GPT-SoVITS adapter (most popular voice cloning, 57k★) ──────────────────
@@ -1908,42 +1887,17 @@ class SherpaOnnxBackend(TTSBackend):
 # the descriptor below.
 
 _LAZY_REGISTRY: dict[str, tuple[str, str]] = {
-    "indextts2": ("engines.indextts", "IndexTTS2Backend"),
     # Phase 4 Plan 04-01 (GGUF-03): hardware-adaptive GGUF runtime wrapper.
     # Lazy so the import of services.tts_backend doesn't pull
     # huggingface_hub + soundfile transitively when callers only need
     # the in-process OmniVoice. Resolves on first attribute / item access.
     "omnivoice-gguf": ("engines.omnivoice_gguf", "OmniVoiceGGUFBackend"),
-    # Phase 3 Plan 03-01 (TTS-01): Supertonic-3 lives in its own engine
-    # package for the same import-cycle reason as IndexTTS2 (its backend
-    # module imports services.subprocess_backend which in turn imports
-    # this module for TTSBackend). The class is resolved on first
-    # attribute access via the LazyRegistry below.
-    "supertonic3": ("engines.supertonic3", "Supertonic3Backend"),
-    # Issue #498: MOSS-TTS-v1.5 (8B) and dots.tts (2B) — both opt-in,
-    # subprocess-isolated with their own venv because each pins a
-    # transformers version that conflicts with the parent's >=5.3
-    # (MOSS == 5.0.0, dots.tts == 4.57.0). Same dedicated-venv pattern as
-    # IndexTTS2. Lazy for the same import-cycle reason as the entries above.
-    "moss-tts-v15": ("engines.moss_tts_v15", "MossTTSV15Backend"),
-    "dots-tts": ("engines.dots_tts", "DotsTTSBackend"),
     # The resident OmniVoice model in a crash-isolated sidecar (#730/#1190):
     # same model and quality as the in-process "omnivoice" engine, but a wedged
     # generate can be hard-killed to reclaim VRAM/device. Opt-in (the in-process
     # engine stays the default). Unlike the entries above it runs under the
     # parent interpreter (crash isolation, not dependency isolation).
     "omnivoice-subprocess": ("engines.omnivoice_subprocess", "OmniVoiceSubprocessBackend"),
-    # Issue #1306: Kyutai PocketTTS, CPU-only, low-latency TTS hired for the
-    # "fastest CPU render / lowest latency" job. Opt-in, subprocess-isolated
-    # under the parent interpreter (crash isolation, not dependency isolation,
-    # same as omnivoice-subprocess: pocket-tts deps sit at the parent's pins).
-    "pockettts": ("engines.pockettts", "PocketTTSBackend"),
-    # Issue #590: Confucius4-TTS (netease-youdao) — LLM-based, 14-language
-    # cross-lingual zero-shot cloning, Apache-2.0. Opt-in + subprocess-isolated
-    # (own Python 3.10 venv) like the entries above. Validated end-to-end
-    # 2026-07-02 (CPU, Apple Silicon; 22.05 kHz output). Gated behind
-    # OMNIVOICE_CONFUCIUS4_TTS_DIR so it's inert until enabled.
-    "confucius4-tts": ("engines.confucius4", "Confucius4Backend"),
 }
 
 
@@ -2011,7 +1965,6 @@ _REGISTRY: dict[str, type[TTSBackend]] = _LazyRegistry({
     "mlx-audio":     MLXAudioBackend,
     "voxcpm2":       VoxCPM2Backend,
     "moss-tts-nano": MossTTSNanoBackend,
-    # "indextts2": resolved lazily via _LAZY_REGISTRY -> engines.indextts
     "gpt-sovits":    GPTSoVITSBackend,
     "sherpa-onnx":   SherpaOnnxBackend,
 })
@@ -2034,20 +1987,7 @@ _LAST_ERRORS: dict[str, str] = {}
 _INSTALL_HINTS: dict[str, str] = {
     "omnivoice":     "pip install omnivoice  (bundled — no extra install needed)",
     "omnivoice-subprocess": "No extra install; uses the host OmniVoice install. Opt in with OMNIVOICE_TTS_BACKEND=omnivoice-subprocess (same model in a killable sidecar, for unattended reliability).",
-    "cosyvoice":     "git clone --recursive FunAudioLLM/CosyVoice + pip install -r requirements.txt + SoX",
-    "kittentts":     "pip install kittentts  (ONNX, CPU-only, ~80 MB)",
-    "mlx-audio":     "pip install mlx-audio  (Apple Silicon only)",
-    "voxcpm2":       'pip install "voxcpm>=2.0.3"  (floor: 2.0.3 fixed Apple-Silicon audio quality; CPU/MPS supported, CUDA recommended for speed)',
-    "moss-tts-nano": "git clone OpenMOSS/MOSS-TTS-Nano && pip install -e .  (not on PyPI)",
-    "indextts2":     "git clone --branch indextts-2.5 https://github.com/index-tts/index-tts.git && cd index-tts && uv venv .venv && uv pip install --python .venv/bin/python -e .  (Windows: .venv\\Scripts\\python.exe; NOT uv sync --all-extras)",
-    "gpt-sovits":    "External API server — start api_v2.py on port 9880",
-    "sherpa-onnx":   "pip install sherpa-onnx  (universal ONNX runtime, WASM-ready)",
     "omnivoice-gguf":"Bundled — runs the C++ omnivoice-tts binary in bin/. Quants download lazily from Serveurperso/OmniVoice-GGUF on first generate.",
-    "supertonic3":   "uv sync --extra supertonic  (CPU-only ONNX, 31 langs, ~400 MB model on first use; OpenRAIL-M model license)",
-    "pockettts":     "uv sync --extra pockettts  (Kyutai, CPU-only, ~100 MB model on first use; MIT code + CC-BY-4.0 weights; HF-gated, review terms and set HF_TOKEN)",
-    "moss-tts-v15":  "git clone OpenMOSS/MOSS-TTS + set OMNIVOICE_MOSS_TTS_V15_DIR  (own venv, transformers==5.0; 8B, ~16 GB weights; CUDA/CPU, no MPS; Apache-2.0)",
-    "dots-tts":      "git clone rednote-hilab/dots.tts + set OMNIVOICE_DOTS_TTS_DIR  (own venv, transformers==4.57; 2B, ~9 GB weights; CUDA/CPU, Linux/macOS only — no Windows; Apache-2.0)",
-    "confucius4-tts":"git clone netease-youdao/Confucius4-TTS + set OMNIVOICE_CONFUCIUS4_TTS_DIR  (own Python 3.10 venv; 14-lang cross-lingual zero-shot clone; ~5 GB weights auto-download; CUDA/CPU, no MPS; Apache-2.0)",
 }
 
 
@@ -2059,10 +1999,6 @@ _INSTALL_HINTS: dict[str, str] = {
 # var each engine's is_available() actually reads. bash/zsh form (the dominant
 # clone-and-run workflow for these engines; dots.tts is *nix-only anyway).
 _SETUP_SNIPPETS: dict[str, str] = {
-    "indextts2":      "export OMNIVOICE_INDEXTTS_DIR=/path/to/index-tts",
-    "moss-tts-v15":   "export OMNIVOICE_MOSS_TTS_V15_DIR=/path/to/MOSS-TTS",
-    "dots-tts":       "export OMNIVOICE_DOTS_TTS_DIR=/path/to/dots.tts",
-    "confucius4-tts": "export OMNIVOICE_CONFUCIUS4_TTS_DIR=/path/to/Confucius4-TTS",
     # #919: sherpa-onnx gates on a downloaded model dir (model.onnx + tokens.txt).
     "sherpa-onnx":    "export OMNIVOICE_SHERPA_MODEL=/path/to/sherpa-onnx-model",
 }
@@ -2480,14 +2416,12 @@ async def resolve_generation_backend(
 
 # ── PEP 562 lazy attribute re-export ───────────────────────────────────────
 #
-# Allows ``from services.tts_backend import IndexTTS2Backend`` to keep
-# working even though the class itself lives in ``engines.indextts``.
-# Triggers the engines.indextts import on first attribute access, which
-# is after this module has finished loading — so no import cycle.
+# Allows ``from services.tts_backend import <Engine>Backend`` to keep working
+# even though the class itself lives in its own ``engines.*`` package.
+# Triggers the engine import on first attribute access, which is after this
+# module has finished loading — so no import cycle.
 
 def __getattr__(name: str):  # pragma: no cover - exercised via tests
     if name in _LAZY_REGISTRY:
         return _REGISTRY[name if name in _REGISTRY else None]
-    if name == "IndexTTS2Backend":
-        return _REGISTRY["indextts2"]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

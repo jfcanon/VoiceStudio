@@ -80,10 +80,3 @@ def test_nemo_parakeet_has_no_cuda_gate(monkeypatch):
     assert "NVIDIA GPU" not in reason
     if not ok:  # env without nemo_toolkit — the only legitimate blocker
         assert "nemo_toolkit" in reason
-
-
-def test_indextts2_overrides_cpu_only_default():
-    from engines.indextts import IndexTTS2Backend
-    assert IndexTTS2Backend.gpu_compat == ("cuda", "cpu")
-    # must NOT be the inherited TTSBackend default
-    assert IndexTTS2Backend.gpu_compat != ("cpu",)

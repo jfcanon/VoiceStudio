@@ -597,12 +597,13 @@ def test_uninstall_refuses_user_managed_clone(monkeypatch, tmp_path):
 
 
 def test_uninstall_clears_legacy_managed_preference(monkeypatch):
-    spec = si.get_spec("indextts2")
-    legacy = si.managed_root(spec) / "index-tts"
-    legacy.mkdir(parents=True)
-    monkeypatch.setenv(spec.env_var, str(legacy))
+    spec = _mk_spec()
+    monkeypatch.setitem(si.SPECS, spec.engine_id, spec)
+    checkout = si.managed_checkout(spec)
+    checkout.mkdir(parents=True)
+    monkeypatch.setenv(spec.env_var, str(checkout))
     deleted = []
-    monkeypatch.setattr("core.prefs.get", lambda k, d=None: str(legacy))
+    monkeypatch.setattr("core.prefs.get", lambda k, d=None: str(checkout))
     monkeypatch.setattr("core.prefs.delete", lambda k: deleted.append(k))
 
     assert si.uninstall(spec.engine_id)["status"] == "uninstalled"
@@ -617,97 +618,20 @@ def test_uninstall_refuses_while_job_running(monkeypatch):
     assert si.uninstall("fake-side")["status"] == "install_in_progress"
 
 
-# ── indextts2 spec wiring (the engine this ships for) ─────────────────────
+# ── sidecar spec wiring (MVP fork: no sidecar engines ship) ────────────────
 
 
-def test_indextts2_spec_matches_bootstrap_contract():
-    spec = si.get_spec("indextts2")
-    assert spec is not None
-    # The env var must be the one engines/indextts/bootstrap.py actually
-    # reads — anything else would install into a dir the engine never finds.
-    assert spec.env_var == "OMNIVOICE_INDEXTTS_DIR"
-    assert spec.probe_module == "indextts.infer_v2_5"
-    # main.py loads from <dir>/checkpoints/config_v2_5.yaml — the
-    # installer must put the weights exactly there.
-    assert spec.repo_ref == "indextts-2.5"
-    assert spec.source_revision == "bf2e967fac7933197143b017a60820b1ad40c448"
-    assert spec.source_required_path == "indextts/infer_v2_5.py"
-    assert spec.weights_repo_id == "IndexTeam/IndexTTS-2.5"
-    assert spec.weights_revision == "d0aa86e75bb6f3437f3831e95056fa72842d89ef"
-    assert spec.weights_subdir == "checkpoints"
-    assert spec.weights_config_name == "config_v2_5.yaml"
-    assert spec.repo_url.endswith("index-tts.git")
-
-
-def test_indextts25_health_requires_25_config_name(monkeypatch):
-    spec = si.get_spec("indextts2")
-    monkeypatch.setenv(spec.env_var, str(si.managed_checkout(spec)))
-    checkout = si.managed_checkout(spec)
-    required = checkout / spec.source_required_path
-    required.parent.mkdir(parents=True, exist_ok=True)
-    required.write_text("class IndexTTS2: pass\n")
-    (checkout / "pyproject.toml").write_text("[project]\nname='indextts'\n")
-    (checkout / si._SOURCE_REVISION_MARKER).write_text(f"{spec.source_revision}\n")
-    py = si._venv_python(checkout / ".venv")
-    py.parent.mkdir(parents=True)
-    py.write_text("#!fake\n")
-    wdir = checkout / spec.weights_subdir
-    _write_weights(
-        wdir,
-        complete=True,
-        repo_id=spec.weights_repo_id,
-        revision=spec.weights_revision,
-    )
-    assert si._healthy(spec) is False
-    (wdir / "config.yaml").unlink()
-    (wdir / "config_v2_5.yaml").write_text("model: fake\n")
-    assert si._healthy(spec) is True
-
-
-def test_managed_indextts2_source_is_preserved_during_25_install(monkeypatch):
-    spec = si.get_spec("indextts2")
-    legacy = si.managed_root(spec) / "index-tts"
-    legacy.mkdir(parents=True)
-    (legacy / "pyproject.toml").write_text("[project]\nname='indextts'\n")
-    (legacy / "old-v2-only.txt").write_text("old")
-    monkeypatch.setenv(spec.env_var, str(legacy))
-    checkout = si.managed_checkout(spec)
-    argvs = []
-
-    def fake_run(job, argv, *, timeout, env=None):
-        argvs.append(argv)
-        if argv[1] == "clone":
-            checkout.mkdir(parents=True, exist_ok=True)
-            (checkout / "pyproject.toml").write_text("[project]\nname='indextts'\n")
-            required = checkout / spec.source_required_path
-            required.parent.mkdir(parents=True, exist_ok=True)
-            required.write_text("class IndexTTS2: pass\n")
-        return 0
-
-    monkeypatch.setattr(si.shutil, "which", lambda n: "/usr/bin/git")
-    monkeypatch.setattr(si, "_run_logged", fake_run)
-    job = si._new_job(spec.engine_id)
-    si._job_step(job, "fetch_source")["state"] = "running"
-    si._step_fetch_source(spec, job)
-    clone = next(argv for argv in argvs if argv[1] == "clone")
-    assert clone[clone.index("--branch") + 1] == "indextts-2.5"
-    assert (legacy / "old-v2-only.txt").read_text() == "old"
-    assert si._source_present(spec, checkout)
-
-
-def test_indextts2_env_var_in_settings_allowlist():
-    from api.routers.system import PERSISTENT_KEYS
-    assert "OMNIVOICE_INDEXTTS_DIR" in PERSISTENT_KEYS
-
-
-def test_list_backends_flags_indextts2_one_click():
-    """Fail-before/pass-after: the Settings UI keys the Install button off
-    this field — without it the engine stays a manual setup_snippet."""
+def test_no_sidecar_specs_ship_in_mvp():
+    """Local MVP fork removed the heavy sidecar engines (IndexTTS 2.5,
+    MOSS-TTS-v1.5, dots.tts, Confucius4, PocketTTS, Supertonic-3). The sidecar
+    installer must expose no specs — and the engine registry must not offer
+    them either."""
+    assert si.SPECS == {}
     from services import tts_backend
-    row = next(r for r in tts_backend.list_backends() if r["id"] == "indextts2")
-    assert row["one_click_install"] is True
-    other = next(r for r in tts_backend.list_backends() if r["id"] == "omnivoice")
-    assert other["one_click_install"] is False
+    ids = {r["id"] for r in tts_backend.list_backends()}
+    for removed in ("indextts2", "moss-tts-v15", "dots-tts", "confucius4-tts",
+                    "pockettts", "supertonic3"):
+        assert removed not in ids
 
 
 # ── router wiring ──────────────────────────────────────────────────────────
