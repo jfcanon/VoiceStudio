@@ -262,6 +262,55 @@ def remote_api_key() -> str | None:
     return os.environ.get("OMNIVOICE_API_KEY") or None
 
 
+def _allowed_ws_origins() -> frozenset[str]:
+    """Origins permitted to open a WebSocket to the local backend.
+
+    Mirrors the CORS ``allow_origins`` list in ``main.py`` (Vite dev server +
+    the Tauri WebView). Read at call time so tests can monkeypatch the env.
+    """
+    raw = os.environ.get("OMNIVOICE_ALLOWED_ORIGINS", "").strip()
+    if raw:
+        return frozenset(o.strip() for o in raw.split(",") if o.strip())
+    try:
+        port = int(os.environ.get("OMNIVOICE_UI_PORT", "3901"))
+    except (TypeError, ValueError):
+        port = 3901
+    return frozenset({
+        f"http://localhost:{port}",
+        f"http://127.0.0.1:{port}",
+        "tauri://localhost",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
+    })
+
+
+def ws_origin_authorized(websocket) -> bool:
+    """WebSocket CSWSH guard — refuse handshakes from disallowed Origins.
+
+    A browser always sends an ``Origin`` header on a WebSocket handshake, and a
+    same-machine browser's ``client.host`` is loopback, so the loopback check
+    alone cannot stop a malicious web page from driving ``/ws/tts`` (GPU/CPU
+    exhaustion) or reading ``/ws/events``. Native/CLI WebSocket clients omit
+    Origin, so an absent header is treated as authorized — the loopback gate
+    still applies to them.
+    """
+    origin = websocket.headers.get("origin") if websocket.headers else None
+    if not origin:
+        return True
+    return origin in _allowed_ws_origins()
+
+
+def ws_loopback_guard(websocket) -> bool:
+    """Composite WebSocket handshake guard: loopback (or remote key) AND an
+    allowlisted Origin. Returns False when the caller should close the socket
+    with 1008. Must run before ``accept()`` — WebSocket dependency injection
+    differs across FastAPI versions, so endpoints inline this check."""
+    host = websocket.client.host if websocket.client else None
+    if not is_local_host(host) and not ws_remote_authorized(websocket):
+        return False
+    return ws_origin_authorized(websocket)
+
+
 def ws_remote_authorized(websocket) -> bool:
     """Whether a WebSocket handshake presents the remote API key.
 

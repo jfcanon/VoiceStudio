@@ -16,6 +16,7 @@ import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from api.dependencies import ws_loopback_guard
 from core import event_bus
 
 router = APIRouter()
@@ -31,6 +32,12 @@ async def ws_events(ws: WebSocket):
     - Client → Server: ping/pong only (no app-level messages expected)
     - Server sends ``{"kind": "ping"}`` every 25 s as a keepalive
     """
+    # Loopback + Origin guard, before accept(). The loopback check alone cannot
+    # stop CSWSH (a same-machine browser's client.host IS loopback), so the
+    # Origin must be allowlisted too — see ws_loopback_guard.
+    if not ws_loopback_guard(ws):
+        await ws.close(code=1008, reason="loopback origin required")
+        return
     await ws.accept()
     q = await event_bus.subscribe()
     logger.info("WS client connected (%d total)", len(event_bus._listeners))

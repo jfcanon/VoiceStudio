@@ -193,6 +193,23 @@ def create_mcp_server():
             JSON with audio_id, generation_time, audio_duration, and
             base64-encoded WAV data.
         """
+        # Resource-exhaustion caps (parity with the audio-size caps on
+        # transcribe/clone_voice): a text bound so an agent can't trigger
+        # unbounded sentence-chunked generation on the GPU pool, plus
+        # bounded speed/steps so the values stay in engine-valid range.
+        MAX_TTS_TEXT_CHARS = 20_000
+        if not text:
+            raise ValueError("text must be a non-empty string")
+        if len(text) > MAX_TTS_TEXT_CHARS:
+            raise ValueError(
+                f"text exceeds the {MAX_TTS_TEXT_CHARS}-character cap "
+                f"({len(text)} given)"
+            )
+        if not 0.5 <= speed <= 2.0:
+            raise ValueError("speed must be in the range 0.5–2.0")
+        if steps not in (8, 16, 32):
+            raise ValueError("steps must be one of 8, 16, or 32")
+
         # Per-agent voice binding (Wave 2.2): explicit arg wins; otherwise
         # resolve this client's bound profile, then the global default.
         client_id = _current_client_id()

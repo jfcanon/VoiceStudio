@@ -41,7 +41,7 @@ import time
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from api.dependencies import is_local_host, ws_remote_authorized
+from api.dependencies import ws_loopback_guard
 from services.text_polish import polish_text
 
 router = APIRouter()
@@ -152,16 +152,17 @@ def _select_sherpa_spec(websocket: WebSocket):
 @router.websocket("/ws/transcribe")
 async def ws_transcribe(websocket: WebSocket):
     """Stream audio in, get partial + final transcription out."""
-    # Loopback origin guard — refuse anything not from 127.0.0.1, ::1, or
+    # Loopback + Origin guard — refuse anything not from 127.0.0.1, ::1, or
     # localhost. HTTP routers use Depends(require_loopback) at router level;
     # WebSocket dependency injection differs across FastAPI versions, so we
     # inline the check before accept(). Without it, any local process could
-    # stream the user's microphone over this endpoint.
-    # Wave 2.3 (remote backend): a non-loopback client that presents the
-    # OMNIVOICE_API_KEY bearer is the thin-client dictation case — the mic
-    # lives on the user's machine, the GPU here — and is allowed through.
-    host = websocket.client.host if websocket.client else None
-    if not is_local_host(host) and not ws_remote_authorized(websocket):
+    # stream the user's microphone over this endpoint. Wave 2.3 (remote
+    # backend): a non-loopback client that presents the OMNIVOICE_API_KEY
+    # bearer is the thin-client dictation case — the mic lives on the user's
+    # machine, the GPU here — and is allowed through. The Origin check closes
+    # the CSWSH window the loopback check can't (a same-machine browser's
+    # client.host IS loopback).
+    if not ws_loopback_guard(websocket):
         await websocket.close(code=1008, reason="loopback origin required")
         return
 

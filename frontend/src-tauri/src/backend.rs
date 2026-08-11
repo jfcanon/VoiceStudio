@@ -314,49 +314,6 @@ fn spawn_failure_diagnostic(python: &Path, err: &std::io::Error) -> String {
 
 // ── Spawn the backend via the bootstrapped venv Python ────────────────────
 
-/// Analytics env for the spawned backend: destination override + install channel.
-///
-/// `core/analytics.py` ships an in-repo publishable default token (#1193), and
-/// reads `POSTHOG_PROJECT_TOKEN` from its environment as the OVERRIDE. release.yml
-/// passes the `POSTHOG_PROJECT_TOKEN` secret to the tauri-action step as
-/// `VITE_POSTHOG_KEY`, and that step compiles this binary as well as the frontend
-/// bundle — so `option_env!` bakes it in on the builds that ship it, and we hand
-/// it to the child process here so a baked release token wins over the in-repo
-/// default.
-///
-/// Two properties this preserves, both load-bearing:
-///   * **Since #1193 there is always a destination**: `core/analytics.py` now
-///     carries the in-repo publishable default token, so even when nothing is
-///     baked in here (a source-built shell) the backend can run its
-///     consent-gated analytics. What this function adds on top is *override*
-///     precedence — a baked release token replaces the in-repo default.
-///   * **A real process env var wins over both**, so a developer can point a
-///     local run at their own PostHog project without recompiling.
-///
-/// It also stamps `OMNIVOICE_INSTALL_CHANNEL=installer` (#1193): anyone running
-/// through this desktop shell is on the "installer" channel — the backend's
-/// `install_channel()` reads it (docker is detected via its own marker; bare
-/// `uvicorn` runs report "source").
-///
-/// This only supplies a *destination* and a channel label. Consent is a separate
-/// gate the backend checks in prefs (default off) — a token alone never causes a
-/// single event.
-fn analytics_env(baked_token: Option<&str>, baked_host: Option<&str>) -> Vec<(String, String)> {
-    let mut out = Vec::new();
-    let mut pass = |name: &str, baked: Option<&str>| {
-        if std::env::var(name).is_ok() {
-            return; // caller's environment wins
-        }
-        if let Some(v) = baked.map(str::trim).filter(|v| !v.is_empty()) {
-            out.push((name.to_string(), v.to_string()));
-        }
-    };
-    pass("POSTHOG_PROJECT_TOKEN", baked_token);
-    pass("POSTHOG_HOST", baked_host);
-    pass("OMNIVOICE_INSTALL_CHANNEL", Some("installer"));
-    out
-}
-
 pub fn spawn_backend<R: tauri::Runtime>(app: &tauri::AppHandle<R>, progress: Option<&Arc<Mutex<BootstrapStage>>>) -> Option<Child> {
     let log_path = backend_log_path();
     let err_path = log_path.with_file_name("backend_err.log");
@@ -431,8 +388,9 @@ pub fn spawn_backend<R: tauri::Runtime>(app: &tauri::AppHandle<R>, progress: Opt
             env.push(("OMNIVOICE_CACHE_DIR".into(), models_dir.to_string_lossy().into()));
         }
     }
-    // Analytics destination (#1123) — see analytics_env() below for why.
-    env.extend(analytics_env(option_env!("VITE_POSTHOG_KEY"), option_env!("VITE_POSTHOG_HOST")));
+    // Local MVP fork: no analytics — nothing is passed to the child beyond the
+    // path/env it needs to run. Telemetry was removed (core/analytics.py is an
+    // inert stub), so there is no POSTHOG_* destination to hand over.
     let app_data = app.path().app_local_data_dir().unwrap_or_default();
     if let Some(ffmpeg_path) = resolve_ffmpeg(app, &app_data) {
         env.push(("FFMPEG_PATH".into(), ffmpeg_path.to_string_lossy().into()));
@@ -548,54 +506,6 @@ mod tests {
     /// The env-var tests below mutate process-global state; keep them off each
     /// other's toes (cargo runs tests in threads by default).
     static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
-
-    #[test]
-    fn a_baked_token_reaches_the_spawned_backend() {
-        let _g = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-        std::env::remove_var("POSTHOG_PROJECT_TOKEN");
-        std::env::remove_var("POSTHOG_HOST");
-        std::env::remove_var("OMNIVOICE_INSTALL_CHANNEL");
-
-        let env = analytics_env(Some("phc_baked"), Some("https://eu.i.posthog.com"));
-
-        // The baked release token must reach the child, where it overrides the
-        // backend's in-repo default destination (#1193).
-        assert!(env.contains(&("POSTHOG_PROJECT_TOKEN".into(), "phc_baked".into())));
-        assert!(env
-            .contains(&("POSTHOG_HOST".into(), "https://eu.i.posthog.com".into())));
-    }
-
-    #[test]
-    fn a_source_build_passes_no_destination_but_still_marks_the_channel() {
-        let _g = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-        std::env::remove_var("POSTHOG_PROJECT_TOKEN");
-        std::env::remove_var("POSTHOG_HOST");
-        std::env::remove_var("OMNIVOICE_INSTALL_CHANNEL");
-
-        // No secret at compile time (anyone building the shell from source), and
-        // the empty string CI hands over when the secret is simply absent: no
-        // POSTHOG_* is passed (the backend falls back to its in-repo default,
-        // #1193) — but running under this shell is still the "installer" channel.
-        for env in [analytics_env(None, None), analytics_env(Some(""), Some("   "))] {
-            assert_eq!(
-                env,
-                vec![("OMNIVOICE_INSTALL_CHANNEL".to_string(), "installer".to_string())]
-            );
-        }
-    }
-
-    #[test]
-    fn the_process_environment_beats_the_baked_token() {
-        let _g = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-        std::env::set_var("POSTHOG_PROJECT_TOKEN", "phc_developers_own_project");
-        std::env::set_var("OMNIVOICE_INSTALL_CHANNEL", "source");
-        let env = analytics_env(Some("phc_baked"), None);
-        // Don't override what the caller deliberately set — the child inherits it.
-        assert!(env.iter().all(|(k, _)| k != "POSTHOG_PROJECT_TOKEN"));
-        assert!(env.iter().all(|(k, _)| k != "OMNIVOICE_INSTALL_CHANNEL"));
-        std::env::remove_var("POSTHOG_PROJECT_TOKEN");
-        std::env::remove_var("OMNIVOICE_INSTALL_CHANNEL");
-    }
 
     #[test]
     fn spawn_failure_diagnostic_surfaces_path_error_and_hint() {

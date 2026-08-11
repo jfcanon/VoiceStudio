@@ -26,6 +26,8 @@ from typing import Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
+from api.dependencies import ws_loopback_guard
+
 router = APIRouter()
 logger = logging.getLogger("omnivoice.tts_stream")
 
@@ -59,6 +61,13 @@ async def ws_tts(websocket: WebSocket):
     followed by a JSON completion message. The connection stays open for
     subsequent requests (conversational mode).
     """
+    # Loopback + Origin guard, before accept(). Without it any web page could
+    # drive GPU/CPU-exhausting generations on this machine — the loopback check
+    # alone is bypassable by a same-machine browser (its client.host is
+    # 127.0.0.1). See ws_loopback_guard.
+    if not ws_loopback_guard(websocket):
+        await websocket.close(code=1008, reason="loopback origin required")
+        return
     await websocket.accept()
     logger.info("TTS streaming WebSocket connected")
 
