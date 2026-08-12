@@ -397,11 +397,7 @@ function App() {
   // Local MVP fork: dubbing, stories, and audiobook state were removed, so the
   // undo/redo (studio generate history) is the only thing left from the old
   // segment-editing hook family.
-  const {
-    undo,
-    redo,
-    recomputeIncremental,
-  } = useSegmentEditing();
+  const { undo, redo, recomputeIncremental } = useSegmentEditing();
 
   useEffect(() => {
     recomputeIncremental();

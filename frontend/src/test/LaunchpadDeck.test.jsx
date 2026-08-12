@@ -26,12 +26,7 @@ vi.mock('../components/ReadinessChecklist', () => ({ default: () => null }));
 // Feature order is part of the contract: grid slot i = feature i.
 // Local MVP fork: dubbing, stories, and audiobook are out of scope, so the
 // grid carries the four core workspaces (clone, design, gallery, transcripts).
-const FEATURE_NAMES = [
-  'Voice Clone',
-  'Voice Design',
-  'Voice Gallery',
-  'Transcripts',
-];
+const FEATURE_NAMES = ['Voice Clone', 'Voice Design', 'Voice Gallery', 'Transcripts'];
 
 function makeProps(overrides = {}) {
   return {

@@ -10,13 +10,7 @@
  * ACTIVE item wears it (rail indicator bar / tab top rule + icon), inactive
  * items stay neutral, so the chrome never turns into a colour chart.
  */
-import {
-  Fingerprint,
-  Settings2,
-  Library,
-  FileText,
-  Globe,
-} from 'lucide-react';
+import { Fingerprint, Settings2, Library, FileText, Globe } from 'lucide-react';
 
 /** The workspaces, in navigation order. `tKey` resolves as `nav.<tKey>`.
  *

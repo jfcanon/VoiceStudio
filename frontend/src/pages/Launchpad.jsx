@@ -1,13 +1,6 @@
 import React, { useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import {
-  Scale,
-  Fingerprint,
-  Wand2,
-  Lock,
-  LibraryBig,
-  FileText,
-} from 'lucide-react';
+import { Scale, Fingerprint, Wand2, Lock, LibraryBig, FileText } from 'lucide-react';
 import { useAppStore } from '../store';
 import ReadinessChecklist from '../components/ReadinessChecklist';
 import LaunchpadDeck from '../components/LaunchpadDeck';

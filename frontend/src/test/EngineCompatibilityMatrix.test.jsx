@@ -214,7 +214,9 @@ describe('EngineCompatibilityMatrix', () => {
       expect(apiGetEngineHealth).toHaveBeenCalledWith('omnivoice-subprocess');
     });
     await waitFor(() => {
-      expect(within(indexRow).getByTestId('health-result-omnivoice-subprocess')).toBeInTheDocument();
+      expect(
+        within(indexRow).getByTestId('health-result-omnivoice-subprocess'),
+      ).toBeInTheDocument();
     });
     expect(within(indexRow).getByText(/1234 ms/)).toBeInTheDocument();
   });
@@ -1051,7 +1053,9 @@ describe('EngineCompatibilityMatrix', () => {
     await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
     const row = () => screen.getByText('OmniVoice Subprocess (test)').closest('[role="row"]');
     await waitFor(() => {
-      expect(within(row()).getByTestId('resident-omnivoice-subprocess')).toHaveTextContent('In memory');
+      expect(within(row()).getByTestId('resident-omnivoice-subprocess')).toHaveTextContent(
+        'In memory',
+      );
     });
     // Non-resident rows carry neither the chip nor the button.
     const omniRow = screen.getByText('OmniVoice (test)').closest('[role="row"]');
@@ -1069,9 +1073,7 @@ describe('EngineCompatibilityMatrix', () => {
     await waitFor(() => {
       expect(within(row()).queryByTestId('resident-omnivoice-subprocess')).not.toBeInTheDocument();
     });
-    expect(
-      within(row()).queryByRole('button', { name: /unload omni/i }),
-    ).not.toBeInTheDocument();
+    expect(within(row()).queryByRole('button', { name: /unload omni/i })).not.toBeInTheDocument();
   });
 
   it('offers no Unload when the loaded entry is not unloadable', async () => {
@@ -1094,9 +1096,7 @@ describe('EngineCompatibilityMatrix', () => {
     await waitFor(() => {
       expect(within(row).getByTestId('resident-omnivoice-subprocess')).toBeInTheDocument();
     });
-    expect(
-      within(row).queryByRole('button', { name: /unload omni/i }),
-    ).not.toBeInTheDocument();
+    expect(within(row).queryByRole('button', { name: /unload omni/i })).not.toBeInTheDocument();
   });
 
   it('renders the matrix normally when the residency probe fails (advisory only)', async () => {
@@ -1264,7 +1264,9 @@ describe('EngineCompatibilityMatrix', () => {
 
   it('installable unavailable rows get an Install button; clicking it starts the job and shows step progress', async () => {
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
-    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
+    const apiInstallEngine = vi
+      .fn()
+      .mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
     // First call = the on-mount re-attach probe (no job yet); later calls =
     // the post-click status refresh with the running job.
     const apiInstallStatus = vi
@@ -1302,7 +1304,9 @@ describe('EngineCompatibilityMatrix', () => {
 
   it('a failed job renders the error with its remediation and offers Retry', async () => {
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
-    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
+    const apiInstallEngine = vi
+      .fn()
+      .mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
     const apiInstallStatus = vi
       .fn()
       .mockResolvedValueOnce(makeIdleStatus())
@@ -1341,7 +1345,9 @@ describe('EngineCompatibilityMatrix', () => {
     // appeared — no error, no retry, just nothing. On fast machines the probe
     // wins the race and hides the bug; on a loaded CI runner it flaked.
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
-    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
+    const apiInstallEngine = vi
+      .fn()
+      .mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
     let releaseProbe;
     const probeGate = new Promise((resolve) => {
       releaseProbe = resolve;
@@ -1370,7 +1376,11 @@ describe('EngineCompatibilityMatrix', () => {
     // …and only then let the probe finish.
     releaseProbe();
 
-    const progress = await screen.findByTestId('install-progress-omnivoice-subprocess', {}, { timeout: 3000 });
+    const progress = await screen.findByTestId(
+      'install-progress-omnivoice-subprocess',
+      {},
+      { timeout: 3000 },
+    );
     expect(progress).toBeInTheDocument();
   });
 
@@ -1379,7 +1389,9 @@ describe('EngineCompatibilityMatrix', () => {
     // re-check loop they'd both proceed and their responses could land out
     // of order (stale 'running' overwriting 'succeeded' restarts the poller).
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
-    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
+    const apiInstallEngine = vi
+      .fn()
+      .mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
     let releaseProbe;
     const probeGate = new Promise((resolve) => {
       releaseProbe = resolve;
@@ -1425,7 +1437,9 @@ describe('EngineCompatibilityMatrix', () => {
     // its stale pre-install snapshot, that response is discarded — it must
     // not overwrite the fresh 'running' state and hide the progress panel.
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
-    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
+    const apiInstallEngine = vi
+      .fn()
+      .mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
     let releaseProbe;
     const probeGate = new Promise((resolve) => {
       releaseProbe = resolve;

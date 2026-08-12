@@ -280,18 +280,15 @@ describe('CPU-tuned engines do not recommend themselves', () => {
   // Greptile P1: the generic advice is "try a CPU-tuned engine (VoiceStudio
   // GGUF)". Showing that to someone already running one is advice to switch
   // to what they are using.
-  it.each(['omnivoice-gguf'])(
-    'drops the self-referential suggestion on %s',
-    async (id) => {
-      listEnginesMock.mockResolvedValue(onCpu(id));
-      await warnIfEngineUnderProvisioned(LONG);
+  it.each(['omnivoice-gguf'])('drops the self-referential suggestion on %s', async (id) => {
+    listEnginesMock.mockResolvedValue(onCpu(id));
+    await warnIfEngineUnderProvisioned(LONG);
 
-      expect(toastFn).toHaveBeenCalledTimes(1);
-      const msg = toastFn.mock.calls[0][0];
-      expect(msg).toContain('engines.cpuLongTextTuned');
-      expect(msg).not.toContain('engines.cpuLongText:');
-    },
-  );
+    expect(toastFn).toHaveBeenCalledTimes(1);
+    const msg = toastFn.mock.calls[0][0];
+    expect(msg).toContain('engines.cpuLongTextTuned');
+    expect(msg).not.toContain('engines.cpuLongText:');
+  });
 
   it('still suggests a CPU-tuned engine to everyone else', async () => {
     listEnginesMock.mockResolvedValue(onCpu('omnivoice'));
