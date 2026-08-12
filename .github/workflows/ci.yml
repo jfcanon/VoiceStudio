@@ -57,11 +57,9 @@ jobs:
           version: 1.0
 
       - name: Install Python deps
-        # `--all-extras` installs optional engine deps (e.g. `supertonic`)
-        # so their tests can exercise the real import path, not the
-        # "package not installed" fallback. Smoke job below stays on bare
-        # `uv sync` because smoke only hits /health + fixture profiles.
-        run: uv sync --all-extras
+        # Local MVP fork: no optional engine extras remain (the heavy sidecar
+        # engines were removed), so a bare `uv sync` installs everything.
+        run: uv sync
 
       # HF_HUB_OFFLINE=1 is a recurrence guard, not an optimization: a test
       # that reaches huggingface.co fails fast and loud instead of silently
@@ -115,8 +113,7 @@ jobs:
       - name: Install frontend deps
         working-directory: frontend
         # --frozen-lockfile so a frontend/package.json change that forgets to
-        # regenerate the root bun.lock fails HERE (fast) instead of only in the
-        # Docker build (deploy/Dockerfile), which is what reddened main on #485.
+        # regenerate the root bun.lock fails HERE (fast).
         run: bun install --frozen-lockfile
 
       # checkJs is true in tsconfig for IDE feedback, but 947 pre-existing
@@ -232,8 +229,7 @@ jobs:
       - name: Install frontend deps
         working-directory: frontend
         # --frozen-lockfile so a frontend/package.json change that forgets to
-        # regenerate the root bun.lock fails HERE (fast) instead of only in the
-        # Docker build (deploy/Dockerfile), which is what reddened main on #485.
+        # regenerate the root bun.lock fails HERE (fast).
         run: bun install --frozen-lockfile
 
       # tauri-build's setup hook reads tauri.conf.json's `frontendDist`
@@ -366,7 +362,7 @@ jobs:
         # backend host. The Intel-Mac leg separately pins the documented
         # unsupported contract: its UI is a remote-backend client only (#889).
         if: matrix.backend_supported
-        run: uv sync --extra pockettts
+        run: uv sync
 
       - name: Verify the documented Intel Mac contract
         if: ${{ !matrix.backend_supported }}
@@ -381,10 +377,10 @@ jobs:
           assert platform.machine() == "x86_64"
           root = Path.cwd()
           project = tomllib.loads((root / "pyproject.toml").read_text("utf-8"))
-          extra = project["project"]["optional-dependencies"]["pockettts"]
-          assert extra == [
-              "pocket-tts==2.1.0 ; sys_platform != 'darwin' or platform_machine != 'x86_64'"
-          ]
+          # Local MVP fork: the heavy sidecar engine extras (pockettts,
+          # supertonic) were removed — nothing opt-in remains to resolve.
+          assert "pockettts" not in project["project"].get("optional-dependencies", {})
+          assert "supertonic" not in project["project"].get("optional-dependencies", {})
           docs = (root / "docs/install/macos.md").read_text("utf-8")
           assert "Intel Macs are not supported" in docs
           PY
@@ -394,4 +390,4 @@ jobs:
         run: uv run pytest tests/smoke/ -q --tb=short
         env:
           HF_HUB_OFFLINE: "1"  # same no-silent-downloads guard as the main pytest job
-          HF_HUB_CACHE: ${{ runner.temp }}/pockettts-empty-hf-cache
+          HF_HUB_CACHE: ${{ runner.temp }}/empty-hf-cache

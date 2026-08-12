@@ -48,8 +48,8 @@ function makeEnginesResponse({ inProcessAvailable = true, inProcessHasLastError 
           gpu_compat: ['cpu'],
         },
         {
-          id: 'indextts2',
-          display_name: 'IndexTTS2 (test)',
+          id: 'omnivoice-subprocess',
+          display_name: 'OmniVoice Subprocess (test)',
           available: true,
           reason: null,
           install_hint: 'git clone …',
@@ -88,7 +88,7 @@ describe('EngineCompatibilityMatrix', () => {
     // is role="row" too, so count by the per-engine marker).
     expect(document.querySelectorAll('[data-engine-id]').length).toBe(3);
     expect(screen.getByText('KittenTTS (test)')).toBeInTheDocument();
-    expect(screen.getByText('IndexTTS2 (test)')).toBeInTheDocument();
+    expect(screen.getByText('OmniVoice Subprocess (test)')).toBeInTheDocument();
     // The documented columns are announced as column headers.
     expect(screen.getAllByRole('columnheader').map((el) => el.textContent)).toEqual([
       'Engine',
@@ -109,9 +109,9 @@ describe('EngineCompatibilityMatrix', () => {
       />,
     );
 
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
 
-    const indexRow = screen.getByText('IndexTTS2 (test)').closest('[role="row"]');
+    const indexRow = screen.getByText('OmniVoice Subprocess (test)').closest('[role="row"]');
     const omniRow = screen.getByText('OmniVoice (test)').closest('[role="row"]');
     const kittenRow = screen.getByText('KittenTTS (test)').closest('[role="row"]');
 
@@ -192,7 +192,7 @@ describe('EngineCompatibilityMatrix', () => {
   it('clicking Test engine fires getEngineHealth and renders latency_ms', async () => {
     const apiListEngines = vi.fn().mockResolvedValue(makeEnginesResponse());
     const apiGetEngineHealth = vi.fn().mockResolvedValue({
-      id: 'indextts2',
+      id: 'omnivoice-subprocess',
       ok: true,
       message: 'pong',
       latency_ms: 1234,
@@ -205,16 +205,16 @@ describe('EngineCompatibilityMatrix', () => {
       />,
     );
 
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    const indexRow = screen.getByText('IndexTTS2 (test)').closest('[role="row"]');
-    const testBtn = within(indexRow).getByRole('button', { name: /test indextts2/i });
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    const indexRow = screen.getByText('OmniVoice Subprocess (test)').closest('[role="row"]');
+    const testBtn = within(indexRow).getByRole('button', { name: /test omni/i });
     fireEvent.click(testBtn);
 
     await waitFor(() => {
-      expect(apiGetEngineHealth).toHaveBeenCalledWith('indextts2');
+      expect(apiGetEngineHealth).toHaveBeenCalledWith('omnivoice-subprocess');
     });
     await waitFor(() => {
-      expect(within(indexRow).getByTestId('health-result-indextts2')).toBeInTheDocument();
+      expect(within(indexRow).getByTestId('health-result-omnivoice-subprocess')).toBeInTheDocument();
     });
     expect(within(indexRow).getByText(/1234 ms/)).toBeInTheDocument();
   });
@@ -237,9 +237,9 @@ describe('EngineCompatibilityMatrix', () => {
       />,
     );
 
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    const indexRow = screen.getByText('IndexTTS2 (test)').closest('[role="row"]');
-    const testBtn = within(indexRow).getByRole('button', { name: /test indextts2/i });
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    const indexRow = screen.getByText('OmniVoice Subprocess (test)').closest('[role="row"]');
+    const testBtn = within(indexRow).getByRole('button', { name: /test omni/i });
     fireEvent.click(testBtn);
 
     await waitFor(() => {
@@ -251,7 +251,7 @@ describe('EngineCompatibilityMatrix', () => {
     expect(apiGetEngineHealth).toHaveBeenCalledTimes(1);
 
     // Release the promise so the test doesn't leak a pending microtask.
-    resolveHealth({ id: 'indextts2', ok: true, message: 'pong', latency_ms: 50 });
+    resolveHealth({ id: 'omnivoice-subprocess', ok: true, message: 'pong', latency_ms: 50 });
   });
 
   // ── #21 routing display ────────────────────────────────────────────────
@@ -396,7 +396,7 @@ describe('EngineCompatibilityMatrix', () => {
   it('renders a failure marker when the health route returns ok=false', async () => {
     const apiListEngines = vi.fn().mockResolvedValue(makeEnginesResponse());
     const apiGetEngineHealth = vi.fn().mockResolvedValue({
-      id: 'indextts2',
+      id: 'omnivoice-subprocess',
       ok: false,
       message: 'spawn failed',
       latency_ms: 12,
@@ -409,9 +409,9 @@ describe('EngineCompatibilityMatrix', () => {
       />,
     );
 
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    const indexRow = screen.getByText('IndexTTS2 (test)').closest('[role="row"]');
-    fireEvent.click(within(indexRow).getByRole('button', { name: /test indextts2/i }));
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    const indexRow = screen.getByText('OmniVoice Subprocess (test)').closest('[role="row"]');
+    fireEvent.click(within(indexRow).getByRole('button', { name: /test omni/i }));
 
     await waitFor(() => {
       expect(within(indexRow).getByText(/failed/i)).toBeInTheDocument();
@@ -482,8 +482,8 @@ describe('EngineCompatibilityMatrix', () => {
             gpu_compat: ['cpu'],
           },
           {
-            id: 'indextts2',
-            display_name: 'IndexTTS2 (test)',
+            id: 'omnivoice-subprocess',
+            display_name: 'OmniVoice Subprocess (test)',
             available: true,
             reason: null,
             install_hint: null,
@@ -508,15 +508,15 @@ describe('EngineCompatibilityMatrix', () => {
         apiGetEngineHealth={vi.fn()}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    const indexRow = () => screen.getByText('IndexTTS2 (test)').closest('[role="row"]');
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    const indexRow = () => screen.getByText('OmniVoice Subprocess (test)').closest('[role="row"]');
     // Not active yet.
     expect(within(indexRow()).queryByText('active')).not.toBeInTheDocument();
 
-    fireEvent.click(within(indexRow()).getByRole('button', { name: /use indextts2/i }));
-    await waitFor(() => expect(onSelect).toHaveBeenCalledWith('tts', 'indextts2'));
+    fireEvent.click(within(indexRow()).getByRole('button', { name: /use omni/i }));
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith('tts', 'omnivoice-subprocess'));
 
-    // Active badge moves to IndexTTS2 after the post-select reload — no manual Refresh.
+    // Active badge moves to OmniVoice Subprocess after the post-select reload — no manual Refresh.
     await waitFor(() => {
       expect(within(indexRow()).getByText('active')).toBeInTheDocument();
     });
@@ -524,8 +524,11 @@ describe('EngineCompatibilityMatrix', () => {
     expect(apiListEngines.mock.calls.length).toBeGreaterThanOrEqual(2);
   });
 
-  // ── P1-A: the license dialog actually mounts on "Accept license" ────────
-  it('mounts the Supertonic license dialog when "Accept license" is clicked', async () => {
+  // ── License-acceptance dialogs ───────────────────────────────────────────
+  // Local MVP fork: the license-gated engines (supertonic3, pockettts) were
+  // removed, so no in-app license dialog mounts — an unavailable row renders
+  // the reason without an Accept button.
+  it('no license dialog mounts for a license-gated reason (engines removed)', async () => {
     const apiListEngines = vi.fn().mockResolvedValue({
       tts: {
         active: 'omnivoice',
@@ -553,52 +556,10 @@ describe('EngineCompatibilityMatrix', () => {
       />,
     );
     await waitFor(() => screen.getByText('Supertonic-3'));
-    // Dialog is not mounted until the button is clicked (state was previously
-    // discarded, so this click did nothing — the regression this guards).
+    expect(
+      screen.queryByRole('button', { name: /review and accept supertonic-3 license/i }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText('Supertonic-3 — License Acceptance')).not.toBeInTheDocument();
-
-    fireEvent.click(
-      screen.getByRole('button', { name: /review and accept supertonic-3 license/i }),
-    );
-    await waitFor(() => {
-      expect(screen.getByText('Supertonic-3 — License Acceptance')).toBeInTheDocument();
-    });
-  });
-
-  it('mounts the PocketTTS terms dialog from an unavailable engine row', async () => {
-    const apiListEngines = vi.fn().mockResolvedValue({
-      tts: {
-        active: 'omnivoice',
-        backends: [
-          {
-            id: 'pockettts',
-            display_name: 'PocketTTS',
-            available: false,
-            reason: 'PocketTTS license not accepted. Review the terms to enable it.',
-            install_hint: null,
-            last_error: null,
-            isolation_mode: 'subprocess',
-            gpu_compat: ['cpu'],
-          },
-        ],
-      },
-      asr: { active: '', backends: [] },
-      llm: { active: 'off', backends: [] },
-    });
-    render(
-      <EngineCompatibilityMatrix
-        family="tts"
-        apiListEngines={apiListEngines}
-        apiGetEngineHealth={vi.fn()}
-      />,
-    );
-
-    await waitFor(() => screen.getByText('PocketTTS'));
-    fireEvent.click(screen.getByRole('button', { name: /review and accept pockettts license/i }));
-    await waitFor(() => {
-      expect(screen.getByText('PocketTTS License Acceptance')).toBeInTheDocument();
-      expect(screen.getByText('Review the access conditions')).toBeInTheDocument();
-    });
   });
 
   // ── Real-synthesis self-test (in-process TTS engines) ──────────────────
@@ -671,10 +632,10 @@ describe('EngineCompatibilityMatrix', () => {
         apiSelfTestEngine={vi.fn()}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    const indexRow = screen.getByText('IndexTTS2 (test)').closest('[role="row"]');
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    const indexRow = screen.getByText('OmniVoice Subprocess (test)').closest('[role="row"]');
     // "Test engine" (liveness) is present; the real-synth "Self-test" is not.
-    expect(within(indexRow).getByRole('button', { name: /test indextts2/i })).toBeInTheDocument();
+    expect(within(indexRow).getByRole('button', { name: /test omni/i })).toBeInTheDocument();
     expect(within(indexRow).queryByRole('button', { name: /self-test/i })).not.toBeInTheDocument();
   });
 
@@ -718,7 +679,7 @@ describe('EngineCompatibilityMatrix', () => {
         active: 'omnivoice',
         backends: [
           {
-            id: 'indextts2',
+            id: 'omnivoice-subprocess',
             display_name: 'IndexTTS-2',
             available: false,
             reason: 'IndexTTS-2 venv not found. Set OMNIVOICE_INDEXTTS_DIR.',
@@ -743,8 +704,8 @@ describe('EngineCompatibilityMatrix', () => {
     );
     await waitFor(() => screen.getByText('IndexTTS-2'));
     // The snippet lives in the row's expansion panel — open it first.
-    fireEvent.click(screen.getByTestId('why-toggle-indextts2'));
-    const snippet = screen.getByTestId('setup-snippet-indextts2');
+    fireEvent.click(screen.getByTestId('why-toggle-omnivoice-subprocess'));
+    const snippet = screen.getByTestId('setup-snippet-omnivoice-subprocess');
     expect(snippet).toHaveTextContent('export OMNIVOICE_INDEXTTS_DIR=/path/to/index-tts');
     expect(
       within(snippet).getByRole('button', { name: /copy setup command/i }),
@@ -978,9 +939,9 @@ describe('EngineCompatibilityMatrix', () => {
       />,
     );
     await waitFor(() => screen.getByText('OmniVoice (test)'));
-    // Monogram derives from the id: "omnivoice" → "OM", "indextts2" → "IN".
+    // Monogram derives from the id: "omnivoice" → "OM", "omnivoice-subprocess" → "OS".
     expect(screen.getByTestId('engine-mark-omnivoice')).toHaveTextContent('OM');
-    expect(screen.getByTestId('engine-mark-indextts2')).toHaveTextContent('IN');
+    expect(screen.getByTestId('engine-mark-omnivoice-subprocess')).toHaveTextContent('OS');
     expect(screen.getByTestId('engine-mark-kittentts')).toBeInTheDocument();
     // Decorative — the name/id are the accessible text.
     expect(screen.getByTestId('engine-mark-omnivoice')).toHaveAttribute('aria-hidden', 'true');
@@ -1009,7 +970,7 @@ describe('EngineCompatibilityMatrix', () => {
       'installed voxcpm 2.0.1 is older than 2.0.3 — upgrading is recommended',
     );
     // Rows without advice (or legacy payloads without the field) show none.
-    expect(screen.queryByTestId('engine-hint-indextts2')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('engine-hint-omnivoice-subprocess')).not.toBeInTheDocument();
     expect(screen.queryByTestId('engine-hint-kittentts')).not.toBeInTheDocument();
   });
 
@@ -1017,7 +978,7 @@ describe('EngineCompatibilityMatrix', () => {
   function cloningResponse() {
     const resp = makeEnginesResponse();
     resp.tts.backends[0].supports_cloning = true; // omnivoice
-    resp.tts.backends[2].supports_cloning = false; // indextts2 — explicit false
+    resp.tts.backends[2].supports_cloning = false; // omnivoice-subprocess — explicit false
     // kittentts: field absent (legacy payload) → no badge either.
     return resp;
   }
@@ -1033,7 +994,7 @@ describe('EngineCompatibilityMatrix', () => {
     );
     await waitFor(() => screen.getByText('OmniVoice (test)'));
     expect(screen.getByTestId('clone-badge-omnivoice')).toHaveTextContent('Voice cloning');
-    expect(screen.queryByTestId('clone-badge-indextts2')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('clone-badge-omnivoice-subprocess')).not.toBeInTheDocument();
     expect(screen.queryByTestId('clone-badge-kittentts')).not.toBeInTheDocument();
   });
 
@@ -1057,13 +1018,13 @@ describe('EngineCompatibilityMatrix', () => {
   const LOADED = {
     models: [
       {
-        id: 'sidecar:indextts2',
-        name: 'indextts2 (sidecar)',
-        checkpoint: 'indextts2',
+        id: 'sidecar:omnivoice-subprocess',
+        name: 'omnivoice-subprocess (sidecar)',
+        checkpoint: 'omnivoice-subprocess',
         device: 'mps',
         vram_mb: 812.5,
         unloadable: true,
-        engine_id: 'indextts2',
+        engine_id: 'omnivoice-subprocess',
         is_active_engine: false,
       },
     ],
@@ -1075,7 +1036,7 @@ describe('EngineCompatibilityMatrix', () => {
     const apiListLoadedModels = vi.fn(async () => loaded);
     const apiUnloadModel = vi.fn(async () => {
       loaded = { models: [], count: 0 }; // backend freed it
-      return { unloaded: 'sidecar:indextts2', success: true };
+      return { unloaded: 'sidecar:omnivoice-subprocess', success: true };
     });
     const apiListEngines = vi.fn().mockResolvedValue(makeEnginesResponse());
     render(
@@ -1087,10 +1048,10 @@ describe('EngineCompatibilityMatrix', () => {
         apiUnloadModel={apiUnloadModel}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    const row = () => screen.getByText('IndexTTS2 (test)').closest('[role="row"]');
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    const row = () => screen.getByText('OmniVoice Subprocess (test)').closest('[role="row"]');
     await waitFor(() => {
-      expect(within(row()).getByTestId('resident-indextts2')).toHaveTextContent('In memory');
+      expect(within(row()).getByTestId('resident-omnivoice-subprocess')).toHaveTextContent('In memory');
     });
     // Non-resident rows carry neither the chip nor the button.
     const omniRow = screen.getByText('OmniVoice (test)').closest('[role="row"]');
@@ -1099,17 +1060,17 @@ describe('EngineCompatibilityMatrix', () => {
       within(omniRow).queryByRole('button', { name: /unload omnivoice/i }),
     ).not.toBeInTheDocument();
 
-    fireEvent.click(within(row()).getByRole('button', { name: /unload indextts2/i }));
+    fireEvent.click(within(row()).getByRole('button', { name: /unload omni/i }));
     await waitFor(() => {
       // Unload targets the /model/loaded id (sidecar:<engine>), not the engine id.
-      expect(apiUnloadModel).toHaveBeenCalledWith('sidecar:indextts2');
+      expect(apiUnloadModel).toHaveBeenCalledWith('sidecar:omnivoice-subprocess');
     });
     // Chip and button clear after the residency refresh.
     await waitFor(() => {
-      expect(within(row()).queryByTestId('resident-indextts2')).not.toBeInTheDocument();
+      expect(within(row()).queryByTestId('resident-omnivoice-subprocess')).not.toBeInTheDocument();
     });
     expect(
-      within(row()).queryByRole('button', { name: /unload indextts2/i }),
+      within(row()).queryByRole('button', { name: /unload omni/i }),
     ).not.toBeInTheDocument();
   });
 
@@ -1128,13 +1089,13 @@ describe('EngineCompatibilityMatrix', () => {
         apiUnloadModel={vi.fn()}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    const row = screen.getByText('IndexTTS2 (test)').closest('[role="row"]');
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    const row = screen.getByText('OmniVoice Subprocess (test)').closest('[role="row"]');
     await waitFor(() => {
-      expect(within(row).getByTestId('resident-indextts2')).toBeInTheDocument();
+      expect(within(row).getByTestId('resident-omnivoice-subprocess')).toBeInTheDocument();
     });
     expect(
-      within(row).queryByRole('button', { name: /unload indextts2/i }),
+      within(row).queryByRole('button', { name: /unload omni/i }),
     ).not.toBeInTheDocument();
   });
 
@@ -1151,7 +1112,7 @@ describe('EngineCompatibilityMatrix', () => {
     );
     await waitFor(() => screen.getByText('OmniVoice (test)'));
     expect(document.querySelectorAll('[data-engine-id]').length).toBe(3);
-    expect(screen.queryByTestId('resident-indextts2')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('resident-omnivoice-subprocess')).not.toBeInTheDocument();
   });
 
   // ── Strict two-line row layout ───────────────────────────────────────────
@@ -1242,13 +1203,13 @@ describe('EngineCompatibilityMatrix', () => {
     );
     await waitFor(() => screen.getByText('OmniVoice (test)'));
     expect(screen.queryByTestId('why-toggle-omnivoice')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('why-toggle-indextts2')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('why-toggle-omnivoice-subprocess')).not.toBeInTheDocument();
     expect(screen.getByTestId('why-toggle-kittentts')).toBeInTheDocument();
   });
 
   // ── One-click sidecar install (IndexTTS-2 & friends) ────────────────────
 
-  /** An unavailable, one-click-installable IndexTTS2 row. */
+  /** An unavailable, one-click-installable OmniVoice Subprocess row. */
   function makeInstallableResponse() {
     const res = makeEnginesResponse();
     res.tts.backends[2] = {
@@ -1264,7 +1225,7 @@ describe('EngineCompatibilityMatrix', () => {
   /** Pre-install status: no job yet (what the on-mount re-attach probe sees). */
   function makeIdleStatus() {
     return {
-      engine_id: 'indextts2',
+      engine_id: 'omnivoice-subprocess',
       installed: false,
       managed: false,
       install_dir: null,
@@ -1274,12 +1235,12 @@ describe('EngineCompatibilityMatrix', () => {
 
   function makeInstallStatus(jobState, overrides = {}) {
     return {
-      engine_id: 'indextts2',
+      engine_id: 'omnivoice-subprocess',
       installed: false,
       managed: false,
       install_dir: null,
       job: {
-        engine_id: 'indextts2',
+        engine_id: 'omnivoice-subprocess',
         state: jobState,
         steps: [
           { id: 'preflight', state: 'done', detail: null },
@@ -1303,7 +1264,7 @@ describe('EngineCompatibilityMatrix', () => {
 
   it('installable unavailable rows get an Install button; clicking it starts the job and shows step progress', async () => {
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
-    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'indextts2' });
+    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
     // First call = the on-mount re-attach probe (no job yet); later calls =
     // the post-click status refresh with the running job.
     const apiInstallStatus = vi
@@ -1319,29 +1280,29 @@ describe('EngineCompatibilityMatrix', () => {
         apiInstallStatus={apiInstallStatus}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
 
-    const installBtn = screen.getByTestId('install-indextts2');
+    const installBtn = screen.getByTestId('install-omnivoice-subprocess');
     expect(installBtn).toHaveTextContent('Install');
     fireEvent.click(installBtn);
 
-    await waitFor(() => expect(apiInstallEngine).toHaveBeenCalledWith('indextts2'));
-    expect(apiInstallStatus).toHaveBeenCalledWith('indextts2');
+    await waitFor(() => expect(apiInstallEngine).toHaveBeenCalledWith('omnivoice-subprocess'));
+    expect(apiInstallStatus).toHaveBeenCalledWith('omnivoice-subprocess');
 
     // Clicking auto-opens the detail panel where the progress renders.
-    const progress = await screen.findByTestId('install-progress-indextts2');
+    const progress = await screen.findByTestId('install-progress-omnivoice-subprocess');
     expect(within(progress).getByText(/Checking uv and disk space/)).toBeInTheDocument();
     const running = progress.querySelector('[data-install-step="fetch_source"]');
     expect(running).toHaveAttribute('data-step-state', 'running');
     // The live log tail is visible while the job runs.
     expect(within(progress).getByText(/Cloning https:\/\//)).toBeInTheDocument();
     // The button reflects the in-flight job.
-    expect(screen.getByTestId('install-indextts2')).toHaveTextContent('Installing…');
+    expect(screen.getByTestId('install-omnivoice-subprocess')).toHaveTextContent('Installing…');
   });
 
   it('a failed job renders the error with its remediation and offers Retry', async () => {
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
-    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'indextts2' });
+    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
     const apiInstallStatus = vi
       .fn()
       .mockResolvedValueOnce(makeIdleStatus())
@@ -1361,14 +1322,14 @@ describe('EngineCompatibilityMatrix', () => {
         apiInstallStatus={apiInstallStatus}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    fireEvent.click(screen.getByTestId('install-indextts2'));
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    fireEvent.click(screen.getByTestId('install-omnivoice-subprocess'));
 
-    const progress = await screen.findByTestId('install-progress-indextts2');
+    const progress = await screen.findByTestId('install-progress-omnivoice-subprocess');
     expect(
       within(progress).getByText(/Not enough disk space .* Free up disk space and retry\./),
     ).toBeInTheDocument();
-    expect(screen.getByTestId('install-indextts2')).toHaveTextContent('Retry install');
+    expect(screen.getByTestId('install-omnivoice-subprocess')).toHaveTextContent('Retry install');
   });
 
   it('an Install click during the mount status probe is not silently dropped', async () => {
@@ -1380,7 +1341,7 @@ describe('EngineCompatibilityMatrix', () => {
     // appeared — no error, no retry, just nothing. On fast machines the probe
     // wins the race and hides the bug; on a loaded CI runner it flaked.
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
-    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'indextts2' });
+    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
     let releaseProbe;
     const probeGate = new Promise((resolve) => {
       releaseProbe = resolve;
@@ -1403,13 +1364,13 @@ describe('EngineCompatibilityMatrix', () => {
         apiInstallStatus={apiInstallStatus}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
     // Click while the probe is still pending…
-    fireEvent.click(screen.getByTestId('install-indextts2'));
+    fireEvent.click(screen.getByTestId('install-omnivoice-subprocess'));
     // …and only then let the probe finish.
     releaseProbe();
 
-    const progress = await screen.findByTestId('install-progress-indextts2', {}, { timeout: 3000 });
+    const progress = await screen.findByTestId('install-progress-omnivoice-subprocess', {}, { timeout: 3000 });
     expect(progress).toBeInTheDocument();
   });
 
@@ -1418,7 +1379,7 @@ describe('EngineCompatibilityMatrix', () => {
     // re-check loop they'd both proceed and their responses could land out
     // of order (stale 'running' overwriting 'succeeded' restarts the poller).
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
-    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'indextts2' });
+    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
     let releaseProbe;
     const probeGate = new Promise((resolve) => {
       releaseProbe = resolve;
@@ -1447,12 +1408,12 @@ describe('EngineCompatibilityMatrix', () => {
         apiInstallStatus={apiInstallStatus}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    fireEvent.click(screen.getByTestId('install-indextts2'));
-    fireEvent.click(screen.getByTestId('install-indextts2'));
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    fireEvent.click(screen.getByTestId('install-omnivoice-subprocess'));
+    fireEvent.click(screen.getByTestId('install-omnivoice-subprocess'));
     releaseProbe();
 
-    await screen.findByTestId('install-progress-indextts2', {}, { timeout: 3000 });
+    await screen.findByTestId('install-progress-omnivoice-subprocess', {}, { timeout: 3000 });
     expect(maxActive).toBe(1); // strictly serialized — never two in flight
   });
 
@@ -1464,7 +1425,7 @@ describe('EngineCompatibilityMatrix', () => {
     // its stale pre-install snapshot, that response is discarded — it must
     // not overwrite the fresh 'running' state and hide the progress panel.
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
-    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'indextts2' });
+    const apiInstallEngine = vi.fn().mockResolvedValue({ status: 'started', engine: 'omnivoice-subprocess' });
     let releaseProbe;
     const probeGate = new Promise((resolve) => {
       releaseProbe = resolve;
@@ -1485,30 +1446,30 @@ describe('EngineCompatibilityMatrix', () => {
         apiInstallStatus={apiInstallStatus}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
 
     vi.useFakeTimers();
     try {
-      fireEvent.click(screen.getByTestId('install-indextts2'));
+      fireEvent.click(screen.getByTestId('install-omnivoice-subprocess'));
       // The probe never resolves; the forced wait must give up on its own.
       await vi.advanceTimersByTimeAsync(FORCE_WAIT_TIMEOUT_MS + 50);
     } finally {
       vi.useRealTimers();
     }
-    await screen.findByTestId('install-progress-indextts2', {}, { timeout: 3000 });
+    await screen.findByTestId('install-progress-omnivoice-subprocess', {}, { timeout: 3000 });
 
     // Now the wedged probe finally settles with its stale idle snapshot…
     releaseProbe();
     await new Promise((resolve) => setTimeout(resolve, 30));
     // …and must NOT have clobbered the running state.
-    expect(screen.getByTestId('install-progress-indextts2')).toBeInTheDocument();
+    expect(screen.getByTestId('install-progress-omnivoice-subprocess')).toBeInTheDocument();
   });
 
   it('already_installed responses skip the job and just reload the matrix', async () => {
     const apiListEngines = vi.fn().mockResolvedValue(makeInstallableResponse());
     const apiInstallEngine = vi
       .fn()
-      .mockResolvedValue({ status: 'already_installed', engine: 'indextts2' });
+      .mockResolvedValue({ status: 'already_installed', engine: 'omnivoice-subprocess' });
     const apiInstallStatus = vi.fn().mockResolvedValue(makeIdleStatus());
     render(
       <EngineCompatibilityMatrix
@@ -1519,12 +1480,12 @@ describe('EngineCompatibilityMatrix', () => {
         apiInstallStatus={apiInstallStatus}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    fireEvent.click(screen.getByTestId('install-indextts2'));
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    fireEvent.click(screen.getByTestId('install-omnivoice-subprocess'));
 
     await waitFor(() => expect(apiListEngines).toHaveBeenCalledTimes(2)); // reload()
     // No job progress ever rendered — nothing to poll beyond the mount probe.
-    expect(screen.queryByTestId('install-progress-indextts2')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('install-progress-omnivoice-subprocess')).not.toBeInTheDocument();
   });
 
   it('demotes the manual setup snippet to a collapsed fallback on installable rows', async () => {
@@ -1539,14 +1500,14 @@ describe('EngineCompatibilityMatrix', () => {
         apiInstallStatus={vi.fn().mockResolvedValue(makeIdleStatus())}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
-    fireEvent.click(screen.getByTestId('why-toggle-indextts2'));
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
+    fireEvent.click(screen.getByTestId('why-toggle-omnivoice-subprocess'));
 
     // Installable row: snippet lives INSIDE a collapsed <details> fallback.
-    const manual = screen.getByTestId('manual-install-indextts2');
+    const manual = screen.getByTestId('manual-install-omnivoice-subprocess');
     expect(manual.tagName).toBe('DETAILS');
     expect(manual).not.toHaveAttribute('open');
-    expect(within(manual).getByTestId('setup-snippet-indextts2')).toBeInTheDocument();
+    expect(within(manual).getByTestId('setup-snippet-omnivoice-subprocess')).toBeInTheDocument();
   });
 
   it('re-attaches to an in-flight install job on mount (no click needed)', async () => {
@@ -1560,13 +1521,13 @@ describe('EngineCompatibilityMatrix', () => {
         apiInstallStatus={apiInstallStatus}
       />,
     );
-    await waitFor(() => screen.getByText('IndexTTS2 (test)'));
+    await waitFor(() => screen.getByText('OmniVoice Subprocess (test)'));
     // The mount probe found a running job — the button reflects it without
     // any user interaction (Settings was closed and reopened mid-install).
     await waitFor(() =>
-      expect(screen.getByTestId('install-indextts2')).toHaveTextContent('Installing…'),
+      expect(screen.getByTestId('install-omnivoice-subprocess')).toHaveTextContent('Installing…'),
     );
-    expect(apiInstallStatus).toHaveBeenCalledWith('indextts2');
+    expect(apiInstallStatus).toHaveBeenCalledWith('omnivoice-subprocess');
   });
 
   it('keeps the setup snippet top-level on rows without a one-click installer', async () => {

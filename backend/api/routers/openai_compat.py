@@ -185,7 +185,7 @@ def _resolve_engine(model_id: str):
             detail=(
                 f"Unknown model '{model_id}'. Use one of: "
                 "omnivoice, voxcpm2, cosyvoice, mlx-audio, kittentts, "
-                "moss-tts-nano, indextts2, gpt-sovits, sherpa-onnx, tts-1, tts-1-hd."
+                "moss-tts-nano, gpt-sovits, sherpa-onnx, tts-1, tts-1-hd."
             ),
         )
 

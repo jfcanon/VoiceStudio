@@ -28,25 +28,9 @@ import { ChevronRight } from 'lucide-react';
 import { Badge, Button, Segmented, Select, Table } from '../ui';
 import { cn } from '@/lib/utils';
 import EngineMark from './EngineMark';
-import SupertonicLicenseDialog from './SupertonicLicenseDialog';
-import PocketTTSLicenseDialog from './PocketTTSLicenseDialog';
 
-/** Engines that gate first use behind an in-app license acceptance dialog.
- *  Phase 3 Plan 03-01 ‑‑ Supertonic-3 today; future OpenRAIL-M engines
- *  add themselves here alongside an in-tree dialog component. */
-const LICENSE_DIALOGS = {
-  supertonic3: SupertonicLicenseDialog,
-  pockettts: PocketTTSLicenseDialog,
-};
-
-/** Heuristic detector for the "license not accepted" backend reason
- *  message produced by Supertonic3Backend.is_available(). The backend
- *  message reads "Supertonic-3 license not accepted ..." so this prefix
- *  match is robust to wording tweaks. */
-function reasonMentionsLicense(reason) {
-  if (!reason || typeof reason !== 'string') return false;
-  return /license not accepted/i.test(reason);
-}
+// Local MVP fork: the license-gated engines (supertonic3, pockettts) were
+// removed, so no in-app license dialogs ship.
 
 /**
  * Engine Compatibility Matrix (Plan 02-04 / ENGINE-06).
@@ -248,7 +232,6 @@ export default function EngineCompatibilityMatrix({
   const [activeFamily, setActiveFamily] = useState(family);
   // Phase 3 Plan 03-01 / TTS-05: which engine has its license dialog
   // currently open, or null. Only one dialog is ever open at a time.
-  const [licenseDialogFor, setLicenseDialogFor] = useState(null);
 
   // health state keyed by engine id:
   //   { [id]: { inflight: boolean, ok?: boolean, message?: string,
@@ -599,7 +582,6 @@ export default function EngineCompatibilityMatrix({
   const activeBackendId = activeId ?? familyData.active;
   // TTS-05: the license dialog registered for the engine awaiting acceptance
   // (or null). Capitalized so JSX renders it as a component below.
-  const LicenseDialog = licenseDialogFor ? LICENSE_DIALOGS[licenseDialogFor] : null;
   // Pinned mode: the header names the family (with its icon) since there is
   // no switcher to say which family this table is.
   const familyMeta = FAMILY_META[activeFamily] || FAMILY_META.tts;
@@ -1169,16 +1151,6 @@ export default function EngineCompatibilityMatrix({
                         the backend says the user hasn't accepted the
                         engine's license yet AND we have a dialog
                         registered for that engine id. */}
-                    {!b.available && reasonMentionsLicense(b.reason) && LICENSE_DIALOGS[b.id] && (
-                      <Button
-                        size="sm"
-                        variant="subtle"
-                        onClick={() => setLicenseDialogFor(b.id)}
-                        aria-label={`Review and accept ${b.display_name} license`}
-                      >
-                        {t('engines.acceptLicense')}
-                      </Button>
-                    )}
                   </div>
                 </div>
 
@@ -1315,21 +1287,6 @@ export default function EngineCompatibilityMatrix({
           )}
         </div>
       </Table>
-
-      {/* TTS-05: license-acceptance dialog for the selected engine. Mounted
-          only while `licenseDialogFor` is set (one at a time). On Accept the
-          dialog POSTs the acceptance then `onAccepted` reloads the matrix so
-          the row flips from unavailable → available without a manual refresh. */}
-      {LicenseDialog && (
-        <LicenseDialog
-          open
-          onClose={() => setLicenseDialogFor(null)}
-          onAccepted={() => {
-            setLicenseDialogFor(null);
-            reload();
-          }}
-        />
-      )}
     </section>
   );
 }

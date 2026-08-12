@@ -46,16 +46,20 @@ describe('errorDocsMap', () => {
         'GATEKEEPER_QUARANTINE',
         'HF_AUTH_FAILED',
         'PKG_RESOURCES_MISSING',
-        'POCKETTTS_GATED_WEIGHTS',
         'PYANNOTE_LICENSE_REQUIRED',
       ].sort(),
     );
   });
 
-  it('classifyError maps PocketTTS access failures to its setup guide', () => {
-    expect(classifyError(new Error('PocketTTS gated model: share your contact information'))).toBe(
-      'POCKETTTS_GATED_WEIGHTS',
-    );
+  it('no removed-engine classes survive (Local MVP fork)', () => {
+    // The license-gated PocketTTS engine was removed; its error class must
+    // not reappear in the locked taxonomy, and its classifier branch is gone
+    // (the message now falls through to whatever else matches — never to a
+    // PocketTTS deeplink).
+    expect('POCKETTTS_GATED_WEIGHTS' in ERROR_DOCS).toBe(false);
+    expect(
+      classifyError(new Error('PocketTTS gated model: share your contact information')),
+    ).not.toBe('POCKETTTS_GATED_WEIGHTS');
   });
 
   it('every URL resolves under the project repo blob', () => {

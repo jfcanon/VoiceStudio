@@ -84,7 +84,7 @@ const LONG_TEXT_CHARS = 1200;
 // someone already running one of these to "try a CPU-tuned engine" is advice
 // to switch to what they are using (Greptile P1) — they get the same warning
 // without the self-referential suggestion.
-const CPU_TUNED_ENGINES = new Set(['omnivoice-gguf', 'supertonic3']);
+const CPU_TUNED_ENGINES = new Set(['omnivoice-gguf']);
 
 /**
  * A CPU-only host is a BENIGN routing verdict — nothing is misconfigured, so
