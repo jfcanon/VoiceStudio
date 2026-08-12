@@ -97,11 +97,10 @@ bug to fix immediately, not backlog.
 |---|---|---|---|
 | GitHub Release: installers + signed `latest.json` (**Stable** updater channel) | the `vX.Y.Z` tag | `release.yml` on tag push | Release page has dmg (arm+intel), msi/exe, AppImage/deb, `latest.json`; body = the CHANGELOG section (not the auto-generated fallback), followed by per-platform checksums and a **Contributors** avatar strip (owner + every PR author for the tag — the `contributors-strip` job) |
 | **Preview** updater channel (rolling `preview` prerelease) | **`main` only** | `release.yml` nightly cron / manual dispatch | preview `latest.json` stamps `X.Y.Z-N` and semver-sorts above stable |
-| GHCR CUDA image: `:X.Y.Z`, `:X.Y`, `:stable` | the tag | `docker.yml` on tag push | `docker manifest inspect ghcr.io/debpalash/omnivoice-studio:X.Y.Z` |
-| GHCR ROCm image: `:X.Y.Z-rocm`, `:X.Y-rocm`, `:stable-rocm` | the tag | `docker.yml` on tag push | same, with `-rocm` suffix |
-| Docker Hub mirror of **all** the above tags | the tag | `docker.yml` (gated on `DOCKERHUB_*` secrets) | tag list at hub.docker.com/r/palashdeb/omnivoice-studio/tags |
-| Docker Hub **overview page** | `deploy/dockerhub-overview.md` @ main | `docker.yml` on main pushes | **read the step log, not the job status** — the step is `continue-on-error` and 403s silently when `DOCKERHUB_TOKEN` lacks description-edit scope |
-| Rolling Docker previews: `:latest`, `:main`, `:rocm` | **`main` only** | `docker.yml` on every main push | tag timestamps move with main |
+
+> **Fork note:** the Docker image channels (GHCR CUDA/ROCm, Docker Hub mirror)
+> were removed with the Docker pipeline (deploy/ + docker.yml) in the Local MVP
+> fork.
 
 **Preview/RC policy:** there are no RC tags (beta cadence — see CLAUDE.md).
 The preview channel *is* the release candidate, and it **always builds from
