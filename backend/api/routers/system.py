@@ -286,7 +286,7 @@ def _tauri_log_candidates():
     - `tauri-plugin-log` writes `tauri.log` to the app log dir
       (`~/Library/Logs/<bundle_id>` on macOS, `$XDG_DATA_HOME/<bundle_id>/logs`
       on Linux, `%LOCALAPPDATA%\\<bundle_id>\\logs` on Windows). Bundle id is
-      `com.debpalash.omnivoice-studio` (frontend/src-tauri/tauri.conf.json).
+      `com.jfcanon.voicestudio` (frontend/src-tauri/tauri.conf.json).
     - backend.rs::backend_log_path() redirects the spawned backend's
       stdout/stderr to `backend.log` / `backend_err.log` under
       `~/Library/Logs/OmniVoice` (macOS), `$XDG_STATE_HOME/VoiceStudio` falling
@@ -296,7 +296,7 @@ def _tauri_log_candidates():
       shapes listed or sidecar crashes become invisible off-macOS.
     """
     home = os.path.expanduser("~")
-    bid = "com.debpalash.omnivoice-studio"
+    bid = "com.jfcanon.voicestudio"
     if sys.platform == "darwin":
         return [
             os.path.join(home, "Library/Logs", bid, "tauri.log"),

@@ -5,7 +5,7 @@ covers what a user *sees* — app name, installer, window title, docs, UI copy �
 and stops precisely there, because four separate identity namespaces exist here
 and only one of them is cosmetic:
 
-  * bundle identifier `com.debpalash.omnivoice-studio` — keys config.json, the
+  * bundle identifier `com.jfcanon.voicestudio` — keys config.json, the
     multi-GB managed Python venv, the WebView profile (localStorage), the
     single-instance lock, and macOS TCC grants for microphone + Accessibility;
   * the backend data dir (`OmniVoice` / `.omnivoice`) and `omnivoice.db` — every

@@ -3,7 +3,7 @@
 //
 // The load-bearing guarantees:
 //   * every path the fresh script may delete is app-scoped (contains
-//     "omnivoice" or "com.debpalash") and lives under the given home dir —
+//     "omnivoice" or "com.jfcanon.voicestudio") and lives under the given home dir —
 //     a typo can never widen a rm -rf beyond OmniVoice's own traces;
 //   * the PATH sanitizer strips exactly the intended dev-tool prefixes and
 //     preserves order otherwise;
