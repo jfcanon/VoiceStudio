@@ -189,7 +189,7 @@ pub async fn install_update(app: AppHandle, channel: String) -> Result<(), Strin
 // ── GitHub releases (changelog/history panel) ─────────────────────────────
 
 const RELEASES_API: &str =
-    "https://api.github.com/repos/debpalash/VoiceStudio/releases?per_page=30";
+    "https://api.github.com/repos/jfcanon/VoiceStudio/releases?per_page=30";
 
 #[derive(Serialize)]
 pub struct ReleaseInfo {

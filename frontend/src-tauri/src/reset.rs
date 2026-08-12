@@ -606,7 +606,7 @@ mod tests {
         // managed Python env that a RESET (unlike uninstall) must never remove.
         let neighbour = dir.path().join("Documents");
         fs::create_dir_all(neighbour.join("thesis")).unwrap();
-        let env = dir.path().join("com.debpalash.omnivoice-studio");
+        let env = dir.path().join("com.jfcanon.voicestudio");
         fs::create_dir_all(env.join("project").join(".venv")).unwrap();
 
         // "Everything VoiceStudio did" minus the frontend-only scopes.

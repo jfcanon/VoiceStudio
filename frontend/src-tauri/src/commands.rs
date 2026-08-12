@@ -391,7 +391,7 @@ fn dirs_data_dir() -> PathBuf {
 }
 
 fn tauri_log_path() -> PathBuf {
-    let bid = "com.debpalash.omnivoice-studio";
+    let bid = "com.jfcanon.voicestudio";
     let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
 
     if cfg!(target_os = "macos") {

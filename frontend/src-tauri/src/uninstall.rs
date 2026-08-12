@@ -225,11 +225,11 @@ mod tests {
         let home = PathBuf::from("/Users/someone");
         for p in [
             "/Users/someone/Library/Application Support/OmniVoice",
-            "/Users/someone/Library/Application Support/com.debpalash.omnivoice-studio",
+            "/Users/someone/Library/Application Support/com.jfcanon.voicestudio",
             "/Users/someone/Library/Logs/OmniVoice",
             "/Users/someone/.omnivoice",
             "/Users/someone/.local/state/OmniVoice",
-            "/Users/someone/.local/share/com.debpalash.omnivoice-studio",
+            "/Users/someone/.local/share/com.jfcanon.voicestudio",
             "/Users/someone/.cache/huggingface",
             // The durable per-user env dir — must clear the same guard as the rest.
             "/Users/someone/.config/omnivoice",
