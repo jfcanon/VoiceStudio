@@ -105,7 +105,7 @@
       "endpoints": [
         "https://github.com/jfcanon/VoiceStudio/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhFMDQ1QkZCQ0I4RDlCQkYKUldTL200M0wrMXNFamdPSGF3VkUzVjBRY1FFOE0yTkxSMVZKNUowL2wyZEw2OG1TWXNLMDlSeTQK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDUwMTMxQkIyMThEM0EwRDQKUldUVW9OTVlzaHNUVUVnYlRuUTYrYXAvdFRoQitpakxzRWJBTE9GV1EvZHZLV2UwTjNFNDN0VnoK",
       "dialog": false
     }
   }
