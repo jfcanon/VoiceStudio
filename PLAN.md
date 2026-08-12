@@ -120,12 +120,14 @@ Legend: ✅ carry upstream mitigation verbatim · ⚠️ fix the upstream gap ·
 
 | Phase | Status | Evidence |
 |---|---|---|
-| 0. Scaffold / trim | ✅ | Fork at upstream tip `8af10ea0`; heavy sidecar engines, deploy/notebooks/examples removed |
+| 0. Scaffold / trim | ✅ | Fork at `jfcanon/VoiceStudio`; heavy sidecar engines, deploy/notebooks/examples removed |
 | 1. Harden | ✅ | WS Origin guards, prompt-isolation, MCP caps, telemetry removal, hardened CSP — all with regression tests |
 | 2. Backend MVP | ✅ | Boots on macOS arm64/MPS; self-check healthy; clone→TTS→STT round-trip verified via `/v1/audio/*` |
 | 3. Frontend MVP | ✅ | Nav trimmed to Launchpad/Voice/Gallery/Transcriptions/Settings; 1791 vitest green; oxlint clean; CI typecheck clean |
 | 4. Shell + packaging | ✅ | `cargo check` + 117 rust tests green; signed `VoiceStudio.app` builds and launches; DMG produced (hdiutil) |
-| 5. Verification | ✅ | Full backend suite: **4552 passed / 1 pre-existing order-dependent flake** (mlx monkeypatch defeated by a prior real import in `tests/` — unrelated to the fork; passes in isolation); frontend 1791 green; rust 117 green; lint/typecheck clean |
+| 5. Verification | ✅ | **GitHub Actions CI green** (all 8 jobs): backend+frontend tests, 5 smoke jobs, 3 Tauri shell checks. Local: 4622 backend tests + probe, 1791 frontend, 117 rust |
+
+Fork CI: https://github.com/jfcanon/VoiceStudio/actions — every push to `main` runs it.
 
 Verified end-to-end on this machine (macOS 26.4.1, Apple Silicon, 36 GB RAM):
 `POST /v1/audio/speech` → 4.16 s real 24 kHz WAV (MPS); the same clip transcribed
