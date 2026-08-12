@@ -59,7 +59,19 @@ jobs:
       - name: Install Python deps
         # Local MVP fork: no optional engine extras remain (the heavy sidecar
         # engines were removed), so a bare `uv sync` installs everything.
-        run: uv sync
+        # Retry: the direct-URL `en-core-web-sm` wheel (spaCy, needed by the
+        # whisperx word-alignment path) downloads from github.com release
+        # assets, which intermittently refuses the runner's HTTP/2 stream
+        # ("http2 error: refused stream"). uv is idempotent, so a retry is
+        # safe.
+        shell: bash
+        run: |
+          for i in 1 2 3; do
+            if uv sync; then exit 0; fi
+            echo "uv sync attempt $i failed (transient release-asset download); retrying in 10s"
+            sleep 10
+          done
+          exit 1
 
       # HF_HUB_OFFLINE=1 is a recurrence guard, not an optimization: a test
       # that reaches huggingface.co fails fast and loud instead of silently
