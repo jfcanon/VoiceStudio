@@ -211,14 +211,14 @@ def test_engine_discovery_preserves_routing_outcome_without_diagnostics(
     assert "/home/alice" not in repr(body)
 
 
-def test_indextts2_entry_has_subprocess_isolation_mode(fresh_app):
+def test_omnivoice_subprocess_entry_has_subprocess_isolation_mode(fresh_app):
     """Cross-checks Plan 02-03's IndexTTS subprocess migration via the API."""
     client = _client(fresh_app)
     r = client.get("/engines")
     assert r.status_code == 200
     by_id = {b["id"]: b for b in r.json()["tts"]["backends"]}
-    assert "indextts2" in by_id
-    assert by_id["indextts2"]["isolation_mode"] == "subprocess"
+    assert "omnivoice-subprocess" in by_id
+    assert by_id["omnivoice-subprocess"]["isolation_mode"] == "subprocess"
 
 
 def test_omnivoice_entry_has_in_process_isolation_mode(fresh_app):
@@ -581,14 +581,14 @@ def test_engine_health_subprocess_success(fresh_app, monkeypatch):
     from services.tts_backend import _REGISTRY
 
     # Resolve the lazy entry without spawning anything heavy.
-    cls = _REGISTRY["indextts2"]
+    cls = _REGISTRY["omnivoice-subprocess"]
     monkeypatch.setattr(cls, "health_check", lambda self: (True, "pong"))
 
     client = _client(fresh_app)
-    r = client.get("/engines/indextts2/health")
+    r = client.get("/engines/omnivoice-subprocess/health")
     assert r.status_code == 200
     body = r.json()
-    assert body["id"] == "indextts2"
+    assert body["id"] == "omnivoice-subprocess"
     assert body["ok"] is True
     assert body["message"] == "Healthy"
     assert isinstance(body["latency_ms"], (int, float))
@@ -632,7 +632,7 @@ def test_engine_health_caches_instance_across_calls(fresh_app, monkeypatch):
     from api.routers import engines as engines_router
     from services.tts_backend import _REGISTRY
 
-    cls = _REGISTRY["indextts2"]
+    cls = _REGISTRY["omnivoice-subprocess"]
     call_count = {"n": 0}
     monkeypatch.setattr(cls, "health_check", lambda self: (True, "pong"))
     # Clear the cache so the first call constructs an instance.
@@ -646,8 +646,8 @@ def test_engine_health_caches_instance_across_calls(fresh_app, monkeypatch):
     monkeypatch.setattr(cls, "__init__", _counting_init)
 
     client = _client(fresh_app)
-    r1 = client.get("/engines/indextts2/health")
-    r2 = client.get("/engines/indextts2/health")
+    r1 = client.get("/engines/omnivoice-subprocess/health")
+    r2 = client.get("/engines/omnivoice-subprocess/health")
     assert r1.status_code == 200 and r2.status_code == 200
     assert call_count["n"] == 1, (
         f"expected exactly one IndexTTS2Backend() construction across "
@@ -842,9 +842,10 @@ def test_setup_snippet_present_for_path_gated_engines(fresh_app):
     # Every entry carries the key (None for engines with no path gate).
     for entry in by_id.values():
         assert "setup_snippet" in entry
-    # IndexTTS-2 is path-gated → exact export line, single-sourced in the backend.
-    assert by_id["indextts2"]["setup_snippet"] == (
-        "export OMNIVOICE_INDEXTTS_DIR=/path/to/index-tts"
+    # sherpa-onnx is path-gated → exact export line, single-sourced in the
+    # backend (the MVP fork removed the IndexTTS path-gated sidecars).
+    assert by_id["sherpa-onnx"]["setup_snippet"] == (
+        "export OMNIVOICE_SHERPA_MODEL=/path/to/sherpa-onnx-model"
     )
     # A bundled engine has no path gate → null.
     assert by_id["omnivoice"]["setup_snippet"] is None
@@ -911,14 +912,14 @@ def test_no_hf_token_leak_in_health_response(fresh_app, monkeypatch):
     """The health route's message field runs through the same redactor."""
     from services.tts_backend import _REGISTRY
 
-    cls = _REGISTRY["indextts2"]
+    cls = _REGISTRY["omnivoice-subprocess"]
     monkeypatch.setattr(
         cls, "health_check",
         lambda self: (False, f"sidecar 401 for {SAMPLE_HF_TOKEN}"),
     )
 
     client = _client(fresh_app)
-    r = client.get("/engines/indextts2/health")
+    r = client.get("/engines/omnivoice-subprocess/health")
     assert r.status_code == 200
     body = r.json()
     assert body["ok"] is False

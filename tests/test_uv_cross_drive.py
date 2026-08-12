@@ -214,7 +214,10 @@ def _engine_bootstrap_files():
 
 
 def test_engine_bootstraps_exist():
-    assert len(_engine_bootstrap_files()) >= 4  # indextts, dots, confucius4, moss
+    # Local MVP fork removed the venv-bootstrapped sidecar engines (indextts,
+    # dots, confucius4, moss-tts-v15), so no bootstrap.py files remain. The
+    # guard stays as an empty-parametrization scan.
+    assert len(_engine_bootstrap_files()) >= 0
 
 
 @pytest.mark.parametrize("path", _engine_bootstrap_files(), ids=lambda p: p.parent.name)

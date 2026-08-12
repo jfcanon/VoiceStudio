@@ -85,15 +85,12 @@ def test_python_package_metadata_points_to_voicestudio() -> None:
 
 
 def test_engine_help_names_the_app_not_the_upstream_model() -> None:
+    # Local MVP fork removed the venv-bootstrapped sidecar engines; the
+    # remaining sidecars (omnivoice_subprocess, _echo, _asr_sidecar) must
+    # still name the app, not the upstream model.
     paths = (
-        "backend/engines/confucius4/__init__.py",
-        "backend/engines/confucius4/bootstrap.py",
-        "backend/engines/dots_tts/__init__.py",
-        "backend/engines/dots_tts/bootstrap.py",
-        "backend/engines/indextts/__init__.py",
-        "backend/engines/indextts/bootstrap.py",
-        "backend/engines/moss_tts_v15/__init__.py",
-        "backend/engines/moss_tts_v15/bootstrap.py",
+        "backend/engines/omnivoice_subprocess/main.py",
+        "backend/engines/_echo/main.py",
     )
     stale_help = re.compile(r"(?:restart|reinstall|re-launch|Run) OmniVoice")
     for path in paths:

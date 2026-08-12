@@ -1987,6 +1987,13 @@ _LAST_ERRORS: dict[str, str] = {}
 _INSTALL_HINTS: dict[str, str] = {
     "omnivoice":     "pip install omnivoice  (bundled — no extra install needed)",
     "omnivoice-subprocess": "No extra install; uses the host OmniVoice install. Opt in with OMNIVOICE_TTS_BACKEND=omnivoice-subprocess (same model in a killable sidecar, for unattended reliability).",
+    "cosyvoice":     "git clone --recursive FunAudioLLM/CosyVoice + pip install -r requirements.txt + SoX",
+    "kittentts":     "pip install kittentts  (ONNX, CPU-only, ~80 MB)",
+    "mlx-audio":     "pip install mlx-audio  (Apple Silicon only)",
+    "voxcpm2":       'pip install "voxcpm>=2.0.3"  (floor: 2.0.3 fixed Apple-Silicon audio quality; CPU/MPS supported, CUDA recommended for speed)',
+    "moss-tts-nano": "git clone OpenMOSS/MOSS-TTS-Nano && pip install -e .  (not on PyPI)",
+    "gpt-sovits":    "External API server — start api_v2.py on port 9880",
+    "sherpa-onnx":   "pip install sherpa-onnx  (universal ONNX runtime, WASM-ready)",
     "omnivoice-gguf":"Bundled — runs the C++ omnivoice-tts binary in bin/. Quants download lazily from Serveurperso/OmniVoice-GGUF on first generate.",
 }
 
@@ -2424,4 +2431,10 @@ async def resolve_generation_backend(
 def __getattr__(name: str):  # pragma: no cover - exercised via tests
     if name in _LAZY_REGISTRY:
         return _REGISTRY[name if name in _REGISTRY else None]
+    # Class-name re-exports for the lazy engines (e.g. OmniVoiceSubprocessBackend).
+    for mod_path, attr in _LAZY_REGISTRY.values():
+        if attr == name:
+            import importlib
+
+            return getattr(importlib.import_module(mod_path), attr)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -130,10 +130,13 @@ def test_list_backends_resilient(registry_sandbox, caplog):
     assert "kaboom" not in caplog.text
     assert "availability probe failed for registered backend broken" in caplog.text
 
-    # And every production backend still appears.
+    # And every production backend still appears. Local MVP fork: the heavy
+    # opt-in sidecar engines (indextts2, moss-tts-v15, dots-tts, confucius4-tts,
+    # pockettts, supertonic3) were removed.
     expected = {
         "omnivoice", "cosyvoice", "kittentts", "mlx-audio", "voxcpm2",
-        "moss-tts-nano", "indextts2", "gpt-sovits", "sherpa-onnx",
+        "moss-tts-nano", "gpt-sovits", "sherpa-onnx",
+        "omnivoice-gguf", "omnivoice-subprocess",
     }
     assert expected.issubset(by_id.keys()), (
         f"missing: {expected - by_id.keys()}"
@@ -277,16 +280,17 @@ def test_last_error_cleared_after_recovery(registry_sandbox):
 
 
 def test_existing_engines_still_listed():
-    """Sanity: the wrap must not silently drop entries. We expect all nine
-    in-tree engines unchanged."""
+    """Sanity: the wrap must not silently drop entries. We expect the ten
+    in-tree engines unchanged (MVP fork removed the heavy sidecar set)."""
     out = list_backends()
     ids = {entry["id"] for entry in out}
     expected = {
         "omnivoice", "cosyvoice", "kittentts", "mlx-audio", "voxcpm2",
-        "moss-tts-nano", "indextts2", "gpt-sovits", "sherpa-onnx",
+        "moss-tts-nano", "gpt-sovits", "sherpa-onnx",
+        "omnivoice-gguf", "omnivoice-subprocess",
     }
     assert expected.issubset(ids), f"missing entries: {expected - ids}"
-    assert len(out) >= 9
+    assert len(out) >= 10
 
 
 def test_install_hint_preserved():

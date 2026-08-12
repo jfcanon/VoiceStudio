@@ -36,10 +36,6 @@ _ROOT = Path(__file__).resolve().parent.parent / "backend" / "engines"
 #: purpose: it raises on multi-channel input instead of downmixing, which is
 #: also correct, and tests/test_pockettts_sidecar.py pins that.
 _SIDECARS = [
-    ("moss_tts_v15/main.py", "_tensor_to_pcm_b64"),
-    ("dots_tts/main.py", "_tensor_to_pcm_b64"),
-    ("supertonic3/sidecar.py", "_wav_float_to_pcm_b64"),
-    ("confucius4/main.py", "_tensor_to_pcm_b64"),
     ("omnivoice_subprocess/main.py", "_tensor_to_pcm_b64"),
 ]
 

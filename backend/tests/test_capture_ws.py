@@ -61,9 +61,10 @@ class TestLoopbackGuard:
         ).read_text(encoding="utf-8")
 
     def test_ws_transcribe_references_loopback_check(self):
-        assert "is_local_host" in self._src(), (
-            "capture_ws.py no longer references is_local_host — the WS "
-            "loopback guard has been removed. Reinstate it before accept()."
+        assert "ws_loopback_guard" in self._src(), (
+            "capture_ws.py no longer references ws_loopback_guard — the WS "
+            "loopback + Origin guard has been removed. Reinstate it before "
+            "accept()."
         )
 
     def test_ws_transcribe_closes_non_loopback_with_1008(self):
