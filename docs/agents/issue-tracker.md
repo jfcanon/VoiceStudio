@@ -1,7 +1,7 @@
 # Issue tracker: GitHub
 
 Issues and PRDs for this repo live as GitHub issues on
-[`debpalash/VoiceStudio`](https://github.com/debpalash/VoiceStudio). Use the `gh`
+[`debpalash/VoiceStudio`](https://github.com/jfcanon/VoiceStudio). Use the `gh`
 CLI for all operations.
 
 ## Conventions

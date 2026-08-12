@@ -54,7 +54,7 @@ see [linux.md — AMD GPU (ROCm)](linux.md#amd-gpu-rocm).
 Run from a regular (non-admin) PowerShell:
 
 ```bash
-git clone https://github.com/debpalash/VoiceStudio.git
+git clone https://github.com/jfcanon/VoiceStudio.git
 cd VoiceStudio
 bun install
 bun run desktop-prod
@@ -73,7 +73,7 @@ model weights. The splash screen shows progress.
 ## Install (pre-built MSI)
 
 Download the latest MSI from the
-[Releases page](https://github.com/debpalash/VoiceStudio/releases/latest),
+[Releases page](https://github.com/jfcanon/VoiceStudio/releases/latest),
 run it, follow the wizard. The shortcut lands in the Start menu as
 **VoiceStudio**.
 
@@ -106,7 +106,7 @@ another drive (`engines\.uv-cache`). An explicit `UV_CACHE_DIR` /
 
 If an install to a local non-C: drive fails anyway, capture a log with
 `msiexec /i VoiceStudio*.msi /L*V install.log` and
-[open an issue](https://github.com/debpalash/VoiceStudio/issues) with it
+[open an issue](https://github.com/jfcanon/VoiceStudio/issues) with it
 — that log shows exactly which step rolled back.
 
 ## Portable install (Windows)
@@ -143,7 +143,7 @@ you which of these you're getting:
 
 That second case used to be a hard block: Portable was greyed out entirely
 after a default install
-([#766](https://github.com/debpalash/VoiceStudio/issues/766)). It no longer
+([#766](https://github.com/jfcanon/VoiceStudio/issues/766)). It no longer
 is — you just get the machine-bound variant unless the app itself sits
 somewhere writable.
 
@@ -222,7 +222,7 @@ bun run desktop-prod
 
 This setting is a no-op on macOS and Linux (the OOM is Windows-specific —
 the `torch.compile` kernel cache behaves differently on the other platforms).
-Tracking issue: [#65](https://github.com/debpalash/VoiceStudio/issues/65).
+Tracking issue: [#65](https://github.com/jfcanon/VoiceStudio/issues/65).
 
 ## Hugging Face token (optional but recommended)
 

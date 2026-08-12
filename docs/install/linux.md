@@ -53,7 +53,7 @@ Everything above, plus the toolchain:
 ## Install (from source)
 
 ```bash
-git clone https://github.com/debpalash/VoiceStudio.git
+git clone https://github.com/jfcanon/VoiceStudio.git
 cd VoiceStudio
 bun install
 source "$HOME/.cargo/env"  # only needed in a shell opened before rustup finished
@@ -84,7 +84,7 @@ reuse the Rust build, Python environment, and installed models.
 ## Install (AppImage)
 
 Download the latest AppImage from the
-[Releases page](https://github.com/debpalash/VoiceStudio/releases/latest),
+[Releases page](https://github.com/jfcanon/VoiceStudio/releases/latest),
 make it executable, and run:
 
 ```bash
@@ -194,15 +194,15 @@ older than ours and you'd rather keep the newer bundled one.)
 If you are on v0.4.0 or older, either update or build from source:
 
 ```bash
-git clone https://github.com/debpalash/VoiceStudio.git
+git clone https://github.com/jfcanon/VoiceStudio.git
 cd VoiceStudio
 bun install
 bun run desktop-prod
 ```
 
-Tracking issues: [#62](https://github.com/debpalash/VoiceStudio/issues/62),
-[#961](https://github.com/debpalash/VoiceStudio/issues/961),
-[#1258](https://github.com/debpalash/VoiceStudio/issues/1258).
+Tracking issues: [#62](https://github.com/jfcanon/VoiceStudio/issues/62),
+[#961](https://github.com/jfcanon/VoiceStudio/issues/961),
+[#1258](https://github.com/jfcanon/VoiceStudio/issues/1258).
 
 ## AppImage: "No microphone found" while the raw binary records fine
 
@@ -258,7 +258,7 @@ If you set `XDG_CACHE_HOME`, the path follows it
 (`$XDG_CACHE_HOME/VoiceStudio/gstreamer-registry.bin`); `~/.cache` is the default
 when it is unset.
 
-Tracking issue: [#1333](https://github.com/debpalash/VoiceStudio/issues/1333).
+Tracking issue: [#1333](https://github.com/jfcanon/VoiceStudio/issues/1333).
 
 ## .deb ffprobe conflict
 
@@ -373,7 +373,7 @@ Notes:
 - ZLUDA (CUDA-on-ROCm translation) can work but is unsupported here — prefer a
   native ROCm wheel.
 
-Tracking issue: [#124](https://github.com/debpalash/VoiceStudio/issues/124).
+Tracking issue: [#124](https://github.com/jfcanon/VoiceStudio/issues/124).
 
 ## Hugging Face token (optional but recommended)
 

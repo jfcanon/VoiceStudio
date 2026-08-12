@@ -87,7 +87,7 @@ pub fn is_recognizably_ours(path: &Path, home: Option<&Path>) -> bool {
         "OmniVoice",
         "omnivoice",
         ".omnivoice",
-        "com.debpalash.omnivoice-studio",
+        "com.jfcanon.voicestudio",
         "huggingface",
     ];
     path.components()

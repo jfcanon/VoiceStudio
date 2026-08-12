@@ -46,7 +46,7 @@ def _read(rel):
 
 def test_the_bundle_identifier_is_unchanged():
     conf = json.loads(_read("frontend/src-tauri/tauri.conf.json"))
-    assert conf["identifier"] == "com.debpalash.omnivoice-studio", WHY
+    assert conf["identifier"] == "com.jfcanon.voicestudio", WHY
 
 
 def test_the_rust_mirror_of_the_identifier_agrees():
@@ -162,7 +162,7 @@ def test_the_uninstall_allowlist_still_recognises_our_paths():
     # If the paths were renamed but this list was not, uninstall and reset stop
     # removing anything — reporting success while leaving everything behind.
     rust = _read("frontend/src-tauri/src/uninstall.rs")
-    for owned in ("OmniVoice", "omnivoice", ".omnivoice", "com.debpalash.omnivoice-studio"):
+    for owned in ("OmniVoice", "omnivoice", ".omnivoice", "com.jfcanon.voicestudio"):
         assert f'"{owned}"' in rust, f"{owned} dropped from the OWNED allowlist. {WHY}"
 
 

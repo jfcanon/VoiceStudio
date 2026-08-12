@@ -1,6 +1,14 @@
-# Agent Rules — VoiceStudio
+# Agent Rules — VoiceStudio (Local MVP fork)
 
 Binding for every AI agent (Claude, Codex, Cursor, review bots, …). CLAUDE.md is the full constitution; this is the operating contract. When they conflict, CLAUDE.md wins.
+
+> **Fork note (2026-08-12):** this is `jfcanon/VoiceStudio`, a hardened fork of
+> `debpalash/VoiceStudio` trimmed to a local-first MVP core (voice cloning,
+> design, TTS, transcription, OpenAI-compat API, MCP server). Heavy TTS sidecar
+> engines, the Dub/Stories/Audiobook/Batch workspaces, the Docker pipeline, and
+> all telemetry were removed. See `CHANGELOG.md` and `PLAN.md`. The secrets
+> workflow (Tauri signing, Apple notarization, HF tokens) is in `guide.md` —
+> read it before touching release machinery.
 
 ## Token economy (owner directive, 2026-07-20; tightened 2026-07-28)
 - **Default to the shortest response that fully answers.** Outlines and tables over prose; no preamble, no recap of what you just did, no re-explaining a fix the diff already shows. Applies to every response, not just status updates.
@@ -37,7 +45,7 @@ Binding for every AI agent (Claude, Codex, Cursor, review bots, …). CLAUDE.md 
 
 ### Issue tracker
 
-GitHub Issues on `debpalash/VoiceStudio`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+GitHub Issues on `jfcanon/VoiceStudio`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

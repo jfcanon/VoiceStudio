@@ -164,7 +164,7 @@ pub fn load_config_pre_app() -> AppConfig {
 
 /// Also used by `commands::webview_cache_paths` (#879) to locate the WebView2
 /// profile cache before an `AppHandle` exists.
-pub const BUNDLE_IDENTIFIER: &str = "com.debpalash.omnivoice-studio";
+pub const BUNDLE_IDENTIFIER: &str = "com.jfcanon.voicestudio";
 
 fn config_path_pre_app() -> Option<PathBuf> {
     portable_config_file().or_else(config_path_for_machine)

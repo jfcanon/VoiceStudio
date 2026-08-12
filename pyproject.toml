@@ -212,10 +212,10 @@ omnivoice-demo = "omnivoice.cli.demo:main"
 omnivoice-dub = "omnivoice.cli.dub:main"
 
 [project.urls]
-Homepage = "https://github.com/debpalash/VoiceStudio"
-Repository = "https://github.com/debpalash/VoiceStudio"
-Documentation = "https://github.com/debpalash/VoiceStudio/tree/main/docs"
-"Bug Tracker" = "https://github.com/debpalash/VoiceStudio/issues"
+Homepage = "https://github.com/jfcanon/VoiceStudio"
+Repository = "https://github.com/jfcanon/VoiceStudio"
+Documentation = "https://github.com/jfcanon/VoiceStudio/tree/main/docs"
+"Bug Tracker" = "https://github.com/jfcanon/VoiceStudio/issues"
 "Upstream TTS Model" = "https://github.com/k2-fsa/OmniVoice"
 
 [tool.uv.sources]

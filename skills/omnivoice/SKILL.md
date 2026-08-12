@@ -5,7 +5,7 @@ description: Speak and transcribe through the user's local VoiceStudio — free,
 
 # VoiceStudio — local TTS & STT
 
-The user runs [VoiceStudio](https://github.com/debpalash/VoiceStudio), a fully-local voice app exposing an OpenAI-compatible audio API at `http://localhost:3900/v1`. Use it whenever the user asks to generate speech, narrate text, clone a voice, or transcribe audio — it costs nothing, works offline, and their audio never leaves the machine.
+The user runs [VoiceStudio](https://github.com/jfcanon/VoiceStudio), a fully-local voice app exposing an OpenAI-compatible audio API at `http://localhost:3900/v1`. Use it whenever the user asks to generate speech, narrate text, clone a voice, or transcribe audio — it costs nothing, works offline, and their audio never leaves the machine.
 
 ## Before the first call
 

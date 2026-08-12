@@ -99,7 +99,7 @@ def test_a_wedge_does_not_blame_the_machine(mm):
         assert useless not in msg or "won't help" in msg
     # It must give the one thing that does help.
     assert "restart the backend" in msg.lower()
-    assert "github.com/debpalash/VoiceStudio/issues" in msg
+    assert "github.com/jfcanon/VoiceStudio/issues" in msg
 
 
 def test_a_genuinely_slow_job_keeps_its_advice(mm):

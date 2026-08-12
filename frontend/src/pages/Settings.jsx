@@ -213,8 +213,8 @@ export default function Settings() {
       `- **Update channel:** ${updateChannel}`,
       `- **Update endpoint:** ${
         updateChannel === 'preview'
-          ? 'https://github.com/debpalash/VoiceStudio/releases/download/preview/latest.json'
-          : 'https://github.com/debpalash/VoiceStudio/releases/latest/download/latest.json'
+          ? 'https://github.com/jfcanon/VoiceStudio/releases/download/preview/latest.json'
+          : 'https://github.com/jfcanon/VoiceStudio/releases/latest/download/latest.json'
       }`,
       `- **User agent:** ${ua}`,
     ];

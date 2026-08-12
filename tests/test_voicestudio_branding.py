@@ -79,8 +79,8 @@ def test_brand_mark_is_shared_and_fills_the_icon() -> None:
 
 def test_python_package_metadata_points_to_voicestudio() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text()
-    assert 'Homepage = "https://github.com/debpalash/VoiceStudio"' in pyproject
-    assert 'Repository = "https://github.com/debpalash/VoiceStudio"' in pyproject
+    assert 'Homepage = "https://github.com/jfcanon/VoiceStudio"' in pyproject
+    assert 'Repository = "https://github.com/jfcanon/VoiceStudio"' in pyproject
     assert '"Upstream TTS Model" = "https://github.com/k2-fsa/OmniVoice"' in pyproject
 
 

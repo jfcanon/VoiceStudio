@@ -19,9 +19,9 @@ use tauri::{AppHandle, Emitter};
 use tauri_plugin_updater::{Update, Updater, UpdaterExt};
 
 const STABLE_MANIFEST: &str =
-    "https://github.com/debpalash/VoiceStudio/releases/latest/download/latest.json";
+    "https://github.com/jfcanon/VoiceStudio/releases/latest/download/latest.json";
 const PREVIEW_MANIFEST: &str =
-    "https://github.com/debpalash/VoiceStudio/releases/download/preview/latest.json";
+    "https://github.com/jfcanon/VoiceStudio/releases/download/preview/latest.json";
 
 /// Cross-channel ordering of VoiceStudio build versions (#326).
 ///

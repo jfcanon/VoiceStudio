@@ -75,7 +75,7 @@ def test_triage_builds_github_url(monkeypatch):
     res = T.triage(_failing_report())
     assert res.owner == "debpalash" and res.repo == "VoiceStudio"
     assert res.url and res.url.startswith(
-        "https://github.com/debpalash/VoiceStudio/issues/new?"
+        "https://github.com/jfcanon/VoiceStudio/issues/new?"
     )
     q = urllib.parse.parse_qs(urllib.parse.urlparse(res.url).query)
     assert q["title"][0] == res.title
@@ -93,7 +93,7 @@ def test_report_renders_issue_button_on_failure():
     from . import report as R
 
     rep = _failing_report()
-    rep.issue_url = "https://github.com/debpalash/VoiceStudio/issues/new?title=x"
+    rep.issue_url = "https://github.com/jfcanon/VoiceStudio/issues/new?title=x"
     html = R.render_html(rep)
     assert "Draft GitHub issue" in html
     assert rep.issue_url in html

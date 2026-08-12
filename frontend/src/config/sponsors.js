@@ -9,7 +9,7 @@
 
 import { KOFI_URL } from '../utils/donateLinks';
 
-const REPO = 'https://github.com/debpalash/VoiceStudio';
+const REPO = 'https://github.com/jfcanon/VoiceStudio';
 
 /**
  * Active sponsors. EMPTY until the first sponsor signs on — the Support page

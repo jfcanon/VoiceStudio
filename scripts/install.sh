@@ -150,7 +150,7 @@ if [ ! -f "$SCRIPT_DIR/pyproject.toml" ]; then
         (cd "$INSTALL_DIR" && git pull --ff-only 2>/dev/null || true)
     else
         if have git; then
-            git clone --depth 1 https://github.com/debpalash/VoiceStudio.git "$INSTALL_DIR"
+            git clone --depth 1 https://github.com/jfcanon/VoiceStudio.git "$INSTALL_DIR"
         else
             die "git is required. Install git and re-run."
         fi

@@ -58,8 +58,8 @@ backend **`.venv`** folder to its exclusions (Windows Security → Virus & threa
 protection → Exclusions). The app's auto-repair now uses `--reinstall` too, so a
 fresh install heals itself.
 
-**Linked issues:** [#58](https://github.com/debpalash/VoiceStudio/issues/58),
-[#248](https://github.com/debpalash/VoiceStudio/issues/248)
+**Linked issues:** [#58](https://github.com/jfcanon/VoiceStudio/issues/58),
+[#248](https://github.com/jfcanon/VoiceStudio/issues/248)
 
 ### 1a. Model load fails: `[Errno 2] No such file or directory: '…/transformers/…/modeling_*.py'`
 
@@ -98,7 +98,7 @@ and transformers itself is fine.
 
 **Fix:** reinstall the trio **together, at the pinned versions** — a plain
 unpinned reinstall can itself resolve a drifted pair
-([#1357](https://github.com/debpalash/VoiceStudio/issues/1357)):
+([#1357](https://github.com/jfcanon/VoiceStudio/issues/1357)):
 
 ```
 uv pip install --python .venv --reinstall torch==2.8.0 torchaudio==2.8.0 torchvision==0.23.0 transformers
@@ -110,8 +110,8 @@ desktop installs don't ship that file, which is why the literal pins are shown).
 They carry no `+cu128`/`+rocm` suffix on purpose — vendor GPU builds match the
 pins rather than being replaced.
 
-**Linked issues:** [#1357](https://github.com/debpalash/VoiceStudio/issues/1357),
-[#1376](https://github.com/debpalash/VoiceStudio/issues/1376)
+**Linked issues:** [#1357](https://github.com/jfcanon/VoiceStudio/issues/1357),
+[#1376](https://github.com/jfcanon/VoiceStudio/issues/1376)
 
 ### 1b. Dubbing: `ASR backend initialization failed: No module named 'lightning_fabric'`
 
@@ -136,7 +136,7 @@ marked unavailable (Settings → Engines shows why, with this repair command)
 and dubbing automatically falls through to **faster-whisper** instead of
 failing outright.
 
-**Linked issue:** [#1185](https://github.com/debpalash/VoiceStudio/issues/1185)
+**Linked issue:** [#1185](https://github.com/jfcanon/VoiceStudio/issues/1185)
 
 ## 2. HF 401 / pyannote license not accepted
 
@@ -157,7 +157,7 @@ before the token works for downloads.
 3. Retry the job. The token state in **Settings → API Keys** should now show
    the "App" row with a green check next to your username.
 
-**Linked issue:** [#35](https://github.com/debpalash/VoiceStudio/issues/35)
+**Linked issue:** [#35](https://github.com/jfcanon/VoiceStudio/issues/35)
 
 ### PocketTTS gated weights
 
@@ -201,8 +201,8 @@ EGL error), then `WEBKIT_DISABLE_COMPOSITING_MODE=1` — full walkthrough incl.
 the software-rendering last resort:
 [linux.md#appimage-white-screen-on-fedora-44--ubuntu-2404](linux.md#appimage-white-screen-on-fedora-44--ubuntu-2404).
 
-**Linked issues:** [#62](https://github.com/debpalash/VoiceStudio/issues/62),
-[#961](https://github.com/debpalash/VoiceStudio/issues/961)
+**Linked issues:** [#62](https://github.com/jfcanon/VoiceStudio/issues/62),
+[#961](https://github.com/jfcanon/VoiceStudio/issues/961)
 
 ## 5. Windows Triton / torch.compile OOM
 
@@ -215,7 +215,7 @@ peak memory footprint that exceeds free VRAM. Windows-only quirk.
 
 **Fix:** see [windows.md#torch-compile-oom](windows.md#torch-compile-oom).
 
-**Linked issue:** [#65](https://github.com/debpalash/VoiceStudio/issues/65)
+**Linked issue:** [#65](https://github.com/jfcanon/VoiceStudio/issues/65)
 
 ## 6. `uv venv` Python download fails (restricted network)
 
@@ -228,8 +228,8 @@ Russia, sometimes on corporate proxies.
 `UV_HTTP_TIMEOUT=120`, `UV_HTTP_RETRIES=5`, `UV_PYTHON_PREFERENCE=only-system`).
 
 **Linked issues:**
-[#57](https://github.com/debpalash/VoiceStudio/issues/57),
-[#60](https://github.com/debpalash/VoiceStudio/issues/60).
+[#57](https://github.com/jfcanon/VoiceStudio/issues/57),
+[#60](https://github.com/jfcanon/VoiceStudio/issues/60).
 
 ## 7. `.deb` ffprobe path conflict on upgrade
 
@@ -307,7 +307,7 @@ falling back to faster-whisper`.
 that Intel Macs can no longer run the local backend at all — PyTorch dropped
 Intel-Mac wheels, so this entry only applies to historical installs (see
 [macos.md](macos.md) and
-[#889](https://github.com/debpalash/VoiceStudio/issues/889)).
+[#889](https://github.com/jfcanon/VoiceStudio/issues/889)).
 
 ## 10. Windows: `Could not locate cudnn_ops_infer64_8.dll` during transcription
 
@@ -319,7 +319,7 @@ On builds before this was fixed, the failure looked much worse than a failed
 transcribe: CTranslate2 aborts the **process** rather than raising, so the whole
 backend died with `exit code -1073740791` (`0xC0000409`) and no error, the app
 restarted it, and the next attempt killed it again
-([#1371](https://github.com/debpalash/VoiceStudio/issues/1371)). VoiceStudio now
+([#1371](https://github.com/jfcanon/VoiceStudio/issues/1371)). VoiceStudio now
 checks whether cuDNN 8 will load *before* selecting a CTranslate2 engine and
 falls back to PyTorch Whisper instead, so a missing library costs you WhisperX's
 word-level alignment — not the backend. The repair below is still worth doing to
@@ -330,11 +330,11 @@ get WhisperX back.
 from `.venv\Lib\site-packages\cudnn8_compat\` — but the step that installs that
 folder only ever lived in the dev-loop setup script, which isn't bundled into
 the packaged app. **Packaged installs never had these libraries at all**, so
-reinstalling never fixed it ([#827](https://github.com/debpalash/VoiceStudio/issues/827)).
+reinstalling never fixed it ([#827](https://github.com/jfcanon/VoiceStudio/issues/827)).
 
 **Fix:** update to the latest build and relaunch — the app's bootstrap now
 detects a CUDA machine and installs the cuDNN-8 libraries into the backend venv
-automatically at launch ([#869](https://github.com/debpalash/VoiceStudio/pull/869)).
+automatically at launch ([#869](https://github.com/jfcanon/VoiceStudio/pull/869)).
 (The check is skipped — and its negative result cached — on CPU/AMD/Apple
 machines, so non-NVIDIA launches stay instant.)
 
@@ -365,7 +365,7 @@ its own venv). For v0.3, workaround: install only one of the conflicting
 engines per VoiceStudio copy. See [docs/engines/cosyvoice.md](../engines/cosyvoice.md)
 for the dedicated CosyVoice path.
 
-**Linked issue:** [#55](https://github.com/debpalash/VoiceStudio/issues/55)
+**Linked issue:** [#55](https://github.com/jfcanon/VoiceStudio/issues/55)
 
 **Same class, ASR side:** the `nemo-parakeet` ASR engine has the identical
 problem and currently has **no safe install path** at all — `nemo_toolkit[asr]`
@@ -374,7 +374,7 @@ VoiceStudio's own `transformers>=5.3` requirement. Installing it into the
 shared venv breaks the backend outright. Do not `pip install nemo_toolkit`
 into VoiceStudio's environment; if you want to try it, use a separate Python
 environment. Isolated-venv support for this engine (matching CosyVoice/
-dots-tts) is tracked in [#974](https://github.com/debpalash/VoiceStudio/issues/974).
+dots-tts) is tracked in [#974](https://github.com/jfcanon/VoiceStudio/issues/974).
 
 ## 12. CUDA PyTorch wheel download fails on first run
 
@@ -414,7 +414,7 @@ redirect, so the generic mirror trick doesn't help here.
 If you don't have an NVIDIA GPU, you don't need the CUDA build at all — a CPU /
 Apple-Silicon install skips this index entirely.
 
-**Linked issue:** [#569](https://github.com/debpalash/VoiceStudio/issues/569)
+**Linked issue:** [#569](https://github.com/jfcanon/VoiceStudio/issues/569)
 
 ## 13. Stuck on the download page / incomplete model cache ("only `refs/`")
 
@@ -476,7 +476,7 @@ files land where the app looks.)
 > Newer builds detect an incomplete cache and re-offer the download instead of
 > stranding you on this page — update once the fix is in your channel.
 
-**Linked issue:** [#622](https://github.com/debpalash/VoiceStudio/issues/622)
+**Linked issue:** [#622](https://github.com/jfcanon/VoiceStudio/issues/622)
 
 ## 14. "Can't reach the local backend" *during* generation / transcription / dubbing
 
@@ -524,7 +524,7 @@ and `OMNIVOICE_GENERATE_TIMEOUT_S` (generation) — both in seconds, default 300
 default 120). **Raise** them for very long single files/generations, **lower**
 them to fail faster on a small machine.
 
-**Two things changed here** ([#1190](https://github.com/debpalash/VoiceStudio/issues/1190)):
+**Two things changed here** ([#1190](https://github.com/jfcanon/VoiceStudio/issues/1190)):
 
 - **Waiting in line is no longer counted as compute.** The generate budget used
   to start the moment a job was *queued*, so on a 1-worker machine a request
@@ -749,7 +749,7 @@ Without the entitlement, macOS's TCC layer never registers a request, which
 is exactly why the app never appears in the System Settings list.
 
 **Fix:** ships in the release after v0.3.12 (the bundle now carries
-`src-tauri/entitlements.plist` — [#1016](https://github.com/debpalash/VoiceStudio/pull/1016),
+`src-tauri/entitlements.plist` — [#1016](https://github.com/jfcanon/VoiceStudio/pull/1016),
 contributed by the same person who diagnosed it). Update and live recording
 works, with a normal macOS permission prompt on first use.
 
@@ -758,7 +758,7 @@ other app (Voice Memos, QuickTime, etc.) and upload the resulting file in
 VoiceStudio instead of using live recording — upload-based cloning is
 unaffected and works normally.
 
-**Linked issue:** [#1013](https://github.com/debpalash/VoiceStudio/issues/1013)
+**Linked issue:** [#1013](https://github.com/jfcanon/VoiceStudio/issues/1013)
 
 > **Tip:** current builds surface the live OS grant state in-app — **Settings →
 > Permissions** shows whether the microphone (and, on macOS, Accessibility) is
@@ -805,7 +805,7 @@ VoiceStudio now tries, in order: the default GitHub host → a gh-proxy mirror �
    (`UV_HTTP_TIMEOUT=120`, `UV_HTTP_CONNECT_TIMEOUT=30`, `UV_HTTP_RETRIES=5`);
    you can raise them further in the environment if a mirror is very slow.
 
-**Linked issues:** [#130](https://github.com/debpalash/VoiceStudio/issues/130), [#60](https://github.com/debpalash/VoiceStudio/issues/60), [#57](https://github.com/debpalash/VoiceStudio/issues/57)
+**Linked issues:** [#130](https://github.com/jfcanon/VoiceStudio/issues/130), [#60](https://github.com/jfcanon/VoiceStudio/issues/60), [#57](https://github.com/jfcanon/VoiceStudio/issues/57)
 
 ## Uninstalling / removing all of VoiceStudio's data
 
@@ -829,4 +829,4 @@ per-platform path list, env-var overrides, portable-mode note, and the steps to
 remove the app binary itself are in
 [docs/install/uninstall.md](uninstall.md).
 
-**Linked issue:** [#1089](https://github.com/debpalash/VoiceStudio/issues/1089)
+**Linked issue:** [#1089](https://github.com/jfcanon/VoiceStudio/issues/1089)

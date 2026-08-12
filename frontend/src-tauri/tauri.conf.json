@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "VoiceStudio",
   "version": "../package.json",
-  "identifier": "com.debpalash.omnivoice-studio",
+  "identifier": "com.jfcanon.voicestudio",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:3901",
@@ -103,7 +103,7 @@
     "updater": {
       "active": true,
       "endpoints": [
-        "https://github.com/debpalash/VoiceStudio/releases/latest/download/latest.json"
+        "https://github.com/jfcanon/VoiceStudio/releases/latest/download/latest.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhFMDQ1QkZCQ0I4RDlCQkYKUldTL200M0wrMXNFamdPSGF3VkUzVjBRY1FFOE0yTkxSMVZKNUowL2wyZEw2OG1TWXNLMDlSeTQK",
       "dialog": false
