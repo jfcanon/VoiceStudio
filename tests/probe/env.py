@@ -105,22 +105,6 @@ def capture_first_run(data_dir: str | os.PathLike, timeout: float = 180.0) -> di
 
 
 # ── optional runtimes (skip cleanly when absent) ────────────────────────────────
-
-
-def docker_available() -> bool:
-    """True only if a Docker CLI *and* a responsive daemon are present."""
-    import shutil
-
-    if shutil.which("docker") is None:
-        return False
-    try:
-        return (
-            subprocess.run(["docker", "info"], capture_output=True, timeout=10).returncode == 0
-        )
-    except Exception:  # noqa: BLE001
-        return False
-
-
-def compose_file() -> Path:
-    """Path to the project's docker-compose (the L5 Docker Actor target)."""
-    return _REPO_ROOT / "deploy" / "docker-compose.yml"
+# Local MVP fork: the Docker / live-container boot leg was removed with the
+# Docker pipeline (deploy/ + docker.yml), so no docker_available/compose_file
+# helpers remain.

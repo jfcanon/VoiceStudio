@@ -40,10 +40,3 @@ def test_boot_does_not_pollute_parent():
         env.capture_first_run(d)
     assert os.environ.get("OMNIVOICE_DATA_DIR") == before_env
     assert ("main" in sys.modules) == before_main
-
-
-def test_docker_path_skips_without_daemon():
-    if not env.docker_available():
-        pytest.skip("no Docker daemon — L5 container boot is enable-on-demand")
-    # When a daemon IS present, the compose file the Actor targets must exist.
-    assert env.compose_file().exists(), f"missing {env.compose_file()}"

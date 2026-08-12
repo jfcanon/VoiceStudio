@@ -69,11 +69,10 @@ def test_build_issue_title_and_table():
 
 def test_triage_builds_github_url(monkeypatch):
     # Pin detect_repo so the URL is deterministic on every fork: this test
-    # exercises URL construction, not the git origin (which is the fork owner on
-    # a contributor's checkout, not the upstream "debpalash").
-    monkeypatch.setattr(T, "detect_repo", lambda cwd=None: ("debpalash", "VoiceStudio"))
+    # exercises URL construction, not the git origin.
+    monkeypatch.setattr(T, "detect_repo", lambda cwd=None: ("jfcanon", "VoiceStudio"))
     res = T.triage(_failing_report())
-    assert res.owner == "debpalash" and res.repo == "VoiceStudio"
+    assert res.owner == "jfcanon" and res.repo == "VoiceStudio"
     assert res.url and res.url.startswith(
         "https://github.com/jfcanon/VoiceStudio/issues/new?"
     )
