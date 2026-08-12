@@ -75,6 +75,5 @@ docs:
   - docs/install/macos.md
   - docs/install/windows.md
   - docs/install/linux.md
-  - docs/install/docker.md
   - docs/install/troubleshooting.md
   - docs/migration/real-time-voice-cloning.md
