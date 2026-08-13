@@ -105,6 +105,13 @@ Store each value in Bitwarden (§1), then set the GitHub secrets (§5).
 
 ## 5. Set the GitHub Actions secrets
 
+> **This fork is wired into your relay** (`~/orca/projects/sagwebapp/relay`):
+> `ivlatenv.sh --init` seeds the Tauri keypair into the macOS Keychain from
+> Bitwarden items `voicestudio-tauri-signing-key` (Secure Note) and
+> `voicestudio-tauri-signing-password` (Login), and `source ./ivlatenv.sh`
+> exports `VOICESTUDIO_TAURI_KEY` / `VOICESTUDIO_TAURI_PASSWORD`. The two
+> `TAURI_SIGNING_*` secrets below are **already set** on this fork.
+
 Once each value is in Bitwarden, export it into the repo's secret store:
 
 ```sh
@@ -146,10 +153,10 @@ git tag v0.4.2-1 && git push origin v0.4.2-1
 
 ## 7. Getting started checklist
 
-1. `export BW_SESSION="$(bw unlock --raw)"`
-2. Generate the Tauri key (§3), update `tauri.conf.json` pubkey, commit + push.
-3. Store key + password in Bitwarden (§1).
-4. If you have an Apple Developer account, do §4 and store the values.
-5. `gh secret set ...` for each (§5).
+1. ✅ Fork wired (`jfcanon/VoiceStudio`), CI green.
+2. ✅ Tauri keypair generated; the fork's **public key** is in `tauri.conf.json` `plugins.updater.pubkey`.
+3. ✅ Private key + password stored in Bitwarden (`voicestudio-tauri-signing-key` Secure Note, `voicestudio-tauri-signing-password` Login) and seeded into the Keychain via `ivlatenv.sh --init`.
+4. ✅ `TAURI_SIGNING_PRIVATE_KEY` + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` set on GitHub.
+5. If you have an Apple Developer account, do §4 and store the values.
 6. `gh variable set MACOS_SIGNING_ENABLED true` only if you want signed stables.
 7. Watch CI turn green; then `git tag v0.4.2-1 && git push origin v0.4.2-1`.
