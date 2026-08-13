@@ -109,7 +109,18 @@ jobs:
           version: 1.0
 
       - name: Install Python deps
-        run: uv sync
+        # Retry: the direct-URL `en-core-web-sm` wheel (spaCy, needed by the
+        # whisperx alignment path) downloads from github.com release assets,
+        # which intermittently refuses the runner's HTTP/2 stream. uv is
+        # idempotent, so a retry is safe.
+        shell: bash
+        run: |
+          for i in 1 2 3; do
+            if uv sync; then exit 0; fi
+            echo "uv sync attempt $i failed (transient release-asset download); retrying in 10s"
+            sleep 10
+          done
+          exit 1
 
       - name: Run pytest
         run: uv run pytest tests/ -q --tb=short
