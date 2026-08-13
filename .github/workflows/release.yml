@@ -772,7 +772,7 @@ jobs:
             || fail "bundled WebKitGTK version marker missing"
           cmp -s \
             "$ROOT/usr/lib/.bundled-webkitgtk-version" \
-            "$GITHUB_WORKSPACE/frontend/src-tauri/target/${{ matrix.rust_target }}/.tauri/bundled-webkitgtk-version" \
+            "$GITHUB_WORKSPACE/frontend/src-tauri/target/.tauri/bundled-webkitgtk-version" \
             || fail "bundled WebKitGTK version marker is stale or mismatched"
           # Thin uv-venv installer: verify the AppImage carries the shell binary,
           # the bundled uv sidecar, and the backend source resources.

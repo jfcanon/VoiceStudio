@@ -22,7 +22,6 @@ if [ ! -f "$APPRUN_SRC" ]; then
   exit 1
 fi
 
-TOOLS_DIR="${OMNIVOICE_TAURI_TOOLS_DIR:-$REPO_ROOT/frontend/src-tauri/target/.tauri}"
 ARCH="${OMNIVOICE_TARGET_ARCH:-$(uname -m)}"
 case "$ARCH" in
   x86_64|amd64) ARCH=x86_64 ;;
@@ -34,17 +33,28 @@ case "$ARCH" in
     ;;
 esac
 
-mkdir -p "$TOOLS_DIR"
-install -m 755 "$APPRUN_SRC" "$TOOLS_DIR/AppRun-$ARCH"
+# AppRun → the bundler's AppRun tools dir. Under `tauri build --target
+# <triple>` that is target/<triple>/.tauri (the bundler derives it from the
+# cargo target dir); a plain `tauri build` uses target/.tauri. The release
+# workflow sets OMNIVOICE_TAURI_TOOLS_DIR to the target-specific path.
+APPRUN_DIR="${OMNIVOICE_TAURI_TOOLS_DIR:-$REPO_ROOT/frontend/src-tauri/target/.tauri}"
+mkdir -p "$APPRUN_DIR"
+install -m 755 "$APPRUN_SRC" "$APPRUN_DIR/AppRun-$ARCH"
 
-# Tauri's appimage.files copies this into usr/lib. AppRun reads the marker
-# there to compare the bundled WebKitGTK with the host copy it may prefer.
+# WebKitGTK version marker → the TOP-LEVEL target/.tauri dir, because
+# tauri.conf.json's bundle.linux.appimage.files copies
+# `target/.tauri/bundled-webkitgtk-version` (resolved relative to
+# frontend/src-tauri) into usr/lib/.bundled-webkitgtk-version. That config
+# path is target-agnostic, so the marker must land there regardless of the
+# AppRun tools dir above.
+MARKER_DIR="$REPO_ROOT/frontend/src-tauri/target/.tauri"
 WK_VERSION="${OMNIVOICE_WEBKIT_VERSION:-$(pkg-config --modversion webkit2gtk-4.1 2>/dev/null \
   || pkg-config --modversion webkit2gtk-4.0 2>/dev/null || true)}"
 if [ -z "$WK_VERSION" ]; then
   echo "inject-apprun: bundled WebKitGTK version is unavailable" >&2
   exit 1
 fi
-printf '%s\n' "$WK_VERSION" > "$TOOLS_DIR/bundled-webkitgtk-version"
+mkdir -p "$MARKER_DIR"
+printf '%s\n' "$WK_VERSION" > "$MARKER_DIR/bundled-webkitgtk-version"
 
-echo "inject-apprun: seeded AppRun-$ARCH (WebKitGTK $WK_VERSION)"
+echo "inject-apprun: seeded AppRun-$ARCH -> $APPRUN_DIR (WebKitGTK $WK_VERSION)"
