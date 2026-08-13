@@ -622,6 +622,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # `tauri build --target <triple>` puts artifacts under
+          # target/<triple>/, so tauri-bundler looks for its tools (the custom
+          # AppRun + WebKitGTK marker seeded by beforeBundleCommand →
+          # scripts/inject-apprun.sh) in target/<triple>/.tauri — NOT the
+          # top-level target/.tauri. Point inject-apprun there so the Linux
+          # AppImage actually ships the WebKit/Mesa-compat AppRun.
+          OMNIVOICE_TAURI_TOOLS_DIR: ${{ github.workspace }}/frontend/src-tauri/target/${{ matrix.rust_target }}/.tauri
           # macOS Apple signing (#134 / #72) is configured by the preceding
           # "Configure Apple signing" step — it exports APPLE_* to $GITHUB_ENV
           # only on the opt-in stable path, leaving them ABSENT (not "") on
@@ -765,7 +772,7 @@ jobs:
             || fail "bundled WebKitGTK version marker missing"
           cmp -s \
             "$ROOT/usr/lib/.bundled-webkitgtk-version" \
-            "$GITHUB_WORKSPACE/frontend/src-tauri/target/.tauri/bundled-webkitgtk-version" \
+            "$GITHUB_WORKSPACE/frontend/src-tauri/target/${{ matrix.rust_target }}/.tauri/bundled-webkitgtk-version" \
             || fail "bundled WebKitGTK version marker is stale or mismatched"
           # Thin uv-venv installer: verify the AppImage carries the shell binary,
           # the bundled uv sidecar, and the backend source resources.
