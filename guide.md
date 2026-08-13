@@ -80,26 +80,27 @@ secrets (§5). **Never commit `~/voicestudio-tauri.key`.**
 
 ---
 
-## 4. Apple signing & notarization
+## 4. Apple signing & notarization (skip — no Apple Developer account)
 
-You need an **Apple Developer** account (paid, team enrollment) to sign and
-notarize. If you don't have one, skip this and ship unsigned builds — the app
-works; Gatekeeper just asks to confirm the first open (`xattr -cr` on the app).
+> **Skipped in this fork.** No Apple Developer account is available, so macOS
+> builds are **unsigned**. That is fully supported: the release workflow skips
+> cert import when the `APPLE_*` secrets are absent, and users open the app the
+> first time via right-click → **Open** (or `xattr -cr VoiceStudio.app`). The
+> `TAURI_SIGNING_*` updater keypair still signs the update packages, so
+> in-app auto-updates work.
 
-Get the pieces:
-
+If you ever get an account, the pieces you'd need (see §2 for the item names):
 1. **Distribution certificate**: Xcode → Settings → Accounts → your team →
-   Manage Certificates → (+) Developer ID Application. It becomes a `.p12` in
-   Keychain Access; export it with a password.
+   Manage Certificates → (+) Developer ID Application. Export the `.p12` from
+   Keychain Access with a password.
 2. **Base64-encode it** for the `APPLE_CERTIFICATE` secret:
    ```sh
    base64 -i "Developer ID Application.p12" | tr -d '\n' | pbcopy
    ```
 3. **App-specific password** (for `APPLE_PASSWORD`): appleid.apple.com →
-   Sign-in & Security → App-Specific Passwords → generate one (label: `voicestudio-notarize`).
-4. **Team ID**: developer.apple.com → Membership → Team ID (10 chars).
-
-Store each value in Bitwarden (§1), then set the GitHub secrets (§5).
+   Sign-in & Security → App-Specific Passwords.
+4. **Team ID**: developer.apple.com → Membership (10 chars).
+Store each in Bitwarden, then `gh secret set` (names in §2).
 
 ---
 
@@ -157,6 +158,5 @@ git tag v0.4.2-1 && git push origin v0.4.2-1
 2. ✅ Tauri keypair generated; the fork's **public key** is in `tauri.conf.json` `plugins.updater.pubkey`.
 3. ✅ Private key + password stored in Bitwarden (`voicestudio-tauri-signing-key` Secure Note, `voicestudio-tauri-signing-password` Login) and seeded into the Keychain via `ivlatenv.sh --init`.
 4. ✅ `TAURI_SIGNING_PRIVATE_KEY` + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` set on GitHub.
-5. If you have an Apple Developer account, do §4 and store the values.
-6. `gh variable set MACOS_SIGNING_ENABLED true` only if you want signed stables.
-7. Watch CI turn green; then `git tag v0.4.2-1 && git push origin v0.4.2-1`.
+5. ❌ Apple signing: skipped (no Apple Developer account) — macOS builds are unsigned, auto-updates still work.
+6. Release: `git tag v0.4.2-1 && git push origin v0.4.2-1`.
